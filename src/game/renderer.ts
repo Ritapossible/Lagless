@@ -212,7 +212,11 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
   
   const playerX = vanishX - wAtPlayer / 2 + playerLaneW * effectiveLane + playerLaneW / 2;
   const jumpOffset = state.playerY * 15;
-  const py = playerBaseY - jumpOffset;
+  // Running bobbing animation
+  const bobAmount = state.isJumping ? 0 : Math.sin(state.frameCount * 0.25) * 3;
+  const tiltAmount = state.isJumping ? -0.1 : Math.sin(state.frameCount * 0.25 + 0.5) * 0.06;
+  const scaleBreath = 1 + Math.sin(state.frameCount * 0.12) * 0.02;
+  const py = playerBaseY - jumpOffset + bobAmount;
   const charSize = 48;
 
   ctx.save();
@@ -233,10 +237,16 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
   ctx.fillStyle = trailGrad;
   ctx.fillRect(playerX - 8, py + charSize * 0.2, 16, charSize * 0.9);
 
-  // Draw character image
+  // Draw character image with bobbing rotation and breathing scale
   const charImg = getCharImage(state.character.ability);
   if (charImg) {
-    ctx.drawImage(charImg, playerX - charSize / 2, py - charSize * 0.7, charSize, charSize);
+    ctx.translate(playerX, py - charSize * 0.2);
+    ctx.rotate(tiltAmount);
+    ctx.scale(scaleBreath, scaleBreath);
+    ctx.drawImage(charImg, -charSize / 2, -charSize * 0.5, charSize, charSize);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    const dpr = window.devicePixelRatio || 1;
+    ctx.scale(dpr, dpr);
   } else {
     // Fallback circle while loading
     ctx.fillStyle = state.abilityActive ? '#00ffcc' : '#00aaff';

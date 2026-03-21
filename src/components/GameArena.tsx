@@ -134,7 +134,7 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
   }, []);
 
   const handleRestart = useCallback(() => {
-    stateRef.current = createInitialState();
+    stateRef.current = createInitialState(characterRef.current);
     stateRef.current.running = true;
     lastTimeRef.current = 0;
     setShowGameOver(false);
