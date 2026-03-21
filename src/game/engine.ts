@@ -37,6 +37,8 @@ export function createInitialState(character?: import('./types').Character): Gam
     laneChangeProgress: 1,
     frameCount: 0,
     streakTimer: 0,
+    levelUpDisplay: 0,
+    levelUpName: '',
   };
 }
 
