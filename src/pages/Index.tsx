@@ -1,16 +1,49 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import TopBar from "@/components/TopBar";
+import BottomNav from "@/components/BottomNav";
+import HeroCharacter from "@/components/HeroCharacter";
+import PlayButton from "@/components/PlayButton";
+import spaceBg from "@/assets/space-bg.jpg";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Background */}
+      <div className="fixed inset-0 -z-10">
+        <img
+          src={spaceBg}
+          alt=""
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-space-dark/40" />
+      </div>
+
+      <TopBar />
+
+      {/* Main content */}
+      <main className="flex flex-col items-center justify-center min-h-screen px-6 pb-24 pt-20">
+        {/* Character */}
+        <div className="mb-6 opacity-0 animate-slide-up" style={{ animationDelay: "0.1s" }}>
+          <HeroCharacter />
+        </div>
+
+        {/* Title */}
+        <div className="mb-10 text-center opacity-0 animate-slide-up" style={{ animationDelay: "0.3s" }}>
+          <h1 className="font-display text-5xl sm:text-6xl font-black tracking-wider leading-[1.05] neon-glow">
+            Latency
+            <br />
+            Escape
+          </h1>
+        </div>
+
+        {/* Play button */}
+        <div className="opacity-0 animate-slide-up" style={{ animationDelay: "0.5s" }}>
+          <PlayButton />
+        </div>
+      </main>
+
+      <BottomNav />
     </div>
   );
 };
-
-const Index = PlaceholderIndex;
 
 export default Index;
