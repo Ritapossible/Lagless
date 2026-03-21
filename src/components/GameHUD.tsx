@@ -1,5 +1,7 @@
-import { Heart, Zap, Timer } from "lucide-react";
+import { useState } from "react";
+import { Heart, Zap, Timer, Volume2, VolumeX } from "lucide-react";
 import { GameState } from "@/game/types";
+import { toggleMute, isMuted } from "@/game/audio";
 import gmumIcon from "@/assets/gmum-character.jpg";
 
 interface GameHUDProps {
