@@ -8,6 +8,12 @@ interface GameHUDProps {
   onPause: () => void;
 }
 
+function formatScore(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 10_000) return (n / 1_000).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+
 const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
   const healthPercent = (state.health / state.maxHealth) * 100;
   const latencyPercent = (state.latencyBudget / state.maxLatency) * 100;
@@ -66,8 +72,8 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 rounded-full border border-primary/40 bg-secondary/60 px-2.5 py-1 neon-box">
             <Zap className="w-3.5 h-3.5 text-primary fill-primary" />
-            <span className="font-display text-xs font-semibold text-foreground">
-              {Math.floor(state.score)}
+            <span className="font-display text-xs font-semibold text-foreground tabular-nums">
+              {formatScore(Math.floor(state.score))}
             </span>
           </div>
         </div>
@@ -155,10 +161,21 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
         </button>
       </div>
 
-      {/* Score popup for hits */}
-      {state.health < state.maxHealth && state.health > 0 && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          {/* hit flash handled by canvas */}
+      {/* Level-up banner */}
+      {state.levelUpDisplay > 0 && (
+        <div
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none"
+          style={{
+            opacity: Math.min(state.levelUpDisplay / 0.5, 1),
+            transform: `translate(-50%, -50%) scale(${1 + (2.5 - state.levelUpDisplay) * 0.03})`,
+          }}
+        >
+          <span className="font-display text-3xl font-bold tracking-widest uppercase neon-glow text-foreground drop-shadow-lg">
+            Level {state.level}
+          </span>
+          <span className="font-display text-sm tracking-wider text-primary mt-1 drop-shadow">
+            {state.levelUpName}
+          </span>
         </div>
       )}
     </div>
