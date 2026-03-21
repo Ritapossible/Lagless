@@ -32,7 +32,7 @@ export function createInitialState(character?: import('./types').Character): Gam
     abilityActive: false,
     abilityCooldownTimer: 0,
     abilityDurationTimer: 0,
-    character: CHARACTERS[0],
+    character: character || CHARACTERS[0],
     worldConfig,
     laneChangeProgress: 1,
     frameCount: 0,
