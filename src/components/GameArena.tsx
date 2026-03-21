@@ -13,11 +13,15 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const [hudState, setHudState] = useState<GameState>(stateRef.current);
   const [showGameOver, setShowGameOver] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(true);
+  const characterRef = useRef(character);
 
-  // Start game
+  // Start game after instructions dismissed
   useEffect(() => {
-    stateRef.current = { ...stateRef.current, running: true };
-  }, []);
+    if (!showInstructions) {
+      stateRef.current = { ...stateRef.current, running: true };
+    }
+  }, [showInstructions]);
 
   // Game loop
   useEffect(() => {
