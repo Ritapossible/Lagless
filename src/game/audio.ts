@@ -3,6 +3,17 @@
 let audioCtx: AudioContext | null = null;
 let bgmGain: GainNode | null = null;
 let bgmPlaying = false;
+let muted = false;
+
+export function isMuted() { return muted; }
+
+export function toggleMute(): boolean {
+  muted = !muted;
+  if (bgmGain) {
+    bgmGain.gain.value = muted ? 0 : 0.06;
+  }
+  return muted;
+}
 let bgmOscillators: OscillatorNode[] = [];
 
 function getCtx(): AudioContext {
