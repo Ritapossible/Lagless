@@ -153,6 +153,7 @@ export function updateGame(state: GameState, dt: number): GameState {
         s.comboCount = 0;
         s.comboMultiplier = 1;
         s.latencyBudget = Math.max(0, s.latencyBudget - 5);
+        s.audioEvents.hit = true;
         return { ...o, hit: true };
       }
     }
