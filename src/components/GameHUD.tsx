@@ -164,18 +164,20 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
       {/* Level-up banner */}
       {state.levelUpDisplay > 0 && (
         <div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none"
-          style={{
-            opacity: Math.min(state.levelUpDisplay / 0.5, 1),
-            transform: `translate(-50%, -50%) scale(${1 + (2.5 - state.levelUpDisplay) * 0.03})`,
-          }}
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          style={{ opacity: Math.min(state.levelUpDisplay / 0.5, 1) }}
         >
-          <span className="font-display text-3xl font-bold tracking-widest uppercase neon-glow text-foreground drop-shadow-lg">
-            Level {state.level}
-          </span>
-          <span className="font-display text-sm tracking-wider text-primary mt-1 drop-shadow">
-            {state.levelUpName}
-          </span>
+          <div
+            className="flex flex-col items-center"
+            style={{ transform: `scale(${1 + (2.5 - state.levelUpDisplay) * 0.03})` }}
+          >
+            <span className="font-display text-3xl font-bold tracking-widest uppercase neon-glow text-foreground drop-shadow-lg">
+              Level {state.level}
+            </span>
+            <span className="font-display text-sm tracking-wider text-primary mt-1 drop-shadow">
+              {state.levelUpName}
+            </span>
+          </div>
         </div>
       )}
     </div>
