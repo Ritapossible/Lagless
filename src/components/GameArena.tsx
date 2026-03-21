@@ -2,6 +2,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import { createInitialState, updateGame, switchLane, jump, activateAbility } from "@/game/engine";
 import { renderGame } from "@/game/renderer";
 import { GameState } from "@/game/types";
+import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, startBGM, stopBGM, resumeAudio } from "@/game/audio";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 
@@ -16,11 +17,14 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
   const [showInstructions, setShowInstructions] = useState(true);
   const characterRef = useRef(character);
 
-  // Start game after instructions dismissed
+  // Start game + BGM after instructions dismissed
   useEffect(() => {
     if (!showInstructions) {
+      resumeAudio();
+      startBGM();
       stateRef.current = { ...stateRef.current, running: true };
     }
+    return () => { stopBGM(); };
   }, [showInstructions]);
 
   // Game loop
@@ -47,6 +51,13 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
       lastTimeRef.current = time;
 
       stateRef.current = updateGame(stateRef.current, dt);
+
+      // Process audio events
+      const ae = stateRef.current.audioEvents;
+      if (ae.hit) playHit();
+      if (ae.pickup) playPickup();
+      if (ae.levelUp) playLevelUp();
+      if (ae.gameOver) { playGameOver(); stopBGM(); }
 
       // Reset scale before drawing
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -96,14 +107,14 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
     const absDy = Math.abs(dy);
 
     if (dt < 300 && absDx < 20 && absDy < 20) {
-      // Tap = jump
       stateRef.current = jump(stateRef.current);
+      playJump();
     } else if (absDx > absDy && absDx > 30) {
-      // Horizontal swipe = lane switch
       stateRef.current = switchLane(stateRef.current, dx > 0 ? 1 : -1);
+      playLaneSwitch();
     } else if (dy < -40) {
-      // Swipe up = jump
       stateRef.current = jump(stateRef.current);
+      playJump();
     }
   }, []);
 
@@ -112,12 +123,16 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft" || e.key === "a") {
         stateRef.current = switchLane(stateRef.current, -1);
+        playLaneSwitch();
       } else if (e.key === "ArrowRight" || e.key === "d") {
         stateRef.current = switchLane(stateRef.current, 1);
+        playLaneSwitch();
       } else if (e.key === " " || e.key === "ArrowUp" || e.key === "w") {
         stateRef.current = jump(stateRef.current);
+        playJump();
       } else if (e.key === "e" || e.key === "Shift") {
         stateRef.current = activateAbility(stateRef.current);
+        playAbility();
       }
     };
     window.addEventListener("keydown", handleKey);
@@ -126,6 +141,7 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
 
   const handleAbility = useCallback(() => {
     stateRef.current = activateAbility(stateRef.current);
+    playAbility();
   }, []);
 
   const handlePause = useCallback(() => {
@@ -139,6 +155,7 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
     lastTimeRef.current = 0;
     setShowGameOver(false);
     setHudState(stateRef.current);
+    startBGM();
     animRef.current = requestAnimationFrame(function loop(time: number) {
       if (!lastTimeRef.current) lastTimeRef.current = time;
       const dt = Math.min((time - lastTimeRef.current) / 1000, 0.05);
@@ -150,6 +167,14 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
       if (!ctx) return;
 
       stateRef.current = updateGame(stateRef.current, dt);
+
+      // Process audio events
+      const ae = stateRef.current.audioEvents;
+      if (ae.hit) playHit();
+      if (ae.pickup) playPickup();
+      if (ae.levelUp) playLevelUp();
+      if (ae.gameOver) { playGameOver(); stopBGM(); }
+
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       const dpr = window.devicePixelRatio || 1;
       ctx.scale(dpr, dpr);

@@ -75,6 +75,13 @@ export interface GameState {
   streakTimer: number;
   levelUpDisplay: number; // countdown timer for level-up banner (seconds)
   levelUpName: string; // world name to display
+  // Audio event flags (consumed each frame)
+  audioEvents: {
+    hit: boolean;
+    pickup: boolean;
+    levelUp: boolean;
+    gameOver: boolean;
+  };
 }
 
 export const WORLDS: WorldConfig[] = [

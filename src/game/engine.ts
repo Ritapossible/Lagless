@@ -39,6 +39,7 @@ export function createInitialState(character?: import('./types').Character): Gam
     streakTimer: 0,
     levelUpDisplay: 0,
     levelUpName: '',
+    audioEvents: { hit: false, pickup: false, levelUp: false, gameOver: false },
   };
 }
 
@@ -46,6 +47,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   if (!state.running || state.paused || state.gameOver) return state;
 
   const s = { ...state };
+  s.audioEvents = { hit: false, pickup: false, levelUp: false, gameOver: false };
   s.frameCount++;
   s.distance += s.speed * dt;
   
@@ -151,6 +153,7 @@ export function updateGame(state: GameState, dt: number): GameState {
         s.comboCount = 0;
         s.comboMultiplier = 1;
         s.latencyBudget = Math.max(0, s.latencyBudget - 5);
+        s.audioEvents.hit = true;
         return { ...o, hit: true };
       }
     }
@@ -160,6 +163,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   // Pickup collection
   s.pickups = s.pickups.map(p => {
     if (!p.collected && p.lane === s.currentLane && Math.abs(p.z - playerZ) < 40) {
+      s.audioEvents.pickup = true;
       if (p.type === 'relay') {
         s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + 20);
         s.comboCount++;
@@ -206,12 +210,14 @@ export function updateGame(state: GameState, dt: number): GameState {
     s.speed += 0.3;
     s.levelUpDisplay = 2.5;
     s.levelUpName = s.worldConfig.name;
+    s.audioEvents.levelUp = true;
   }
 
   // Game over conditions
   if (s.health <= 0 || s.latencyBudget <= 0) {
     s.gameOver = true;
     s.running = false;
+    s.audioEvents.gameOver = true;
   }
 
   s.comboMultiplier = 1 + Math.min(s.comboCount * 0.1, 3);
