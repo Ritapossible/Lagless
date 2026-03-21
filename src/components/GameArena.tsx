@@ -2,6 +2,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import { createInitialState, updateGame, switchLane, jump, activateAbility } from "@/game/engine";
 import { renderGame } from "@/game/renderer";
 import { GameState } from "@/game/types";
+import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, startBGM, stopBGM, resumeAudio } from "@/game/audio";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 
