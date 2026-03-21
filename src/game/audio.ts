@@ -59,6 +59,7 @@ export function playJump() {
 }
 
 export function playPickup() {
+  if (muted) return;
   const ctx = getCtx();
   const t = ctx.currentTime;
   // Two-tone chime
