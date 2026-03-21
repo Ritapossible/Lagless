@@ -47,6 +47,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   if (!state.running || state.paused || state.gameOver) return state;
 
   const s = { ...state };
+  s.audioEvents = { hit: false, pickup: false, levelUp: false, gameOver: false };
   s.frameCount++;
   s.distance += s.speed * dt;
   
