@@ -17,6 +17,7 @@ function formatScore(n: number): string {
 }
 
 const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
+  const [muted, setMuted] = useState(isMuted());
   const healthPercent = (state.health / state.maxHealth) * 100;
   const latencyPercent = (state.latencyBudget / state.maxLatency) * 100;
   const cooldownPercent = state.abilityCooldownTimer > 0
