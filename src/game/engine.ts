@@ -210,12 +210,14 @@ export function updateGame(state: GameState, dt: number): GameState {
     s.speed += 0.3;
     s.levelUpDisplay = 2.5;
     s.levelUpName = s.worldConfig.name;
+    s.audioEvents.levelUp = true;
   }
 
   // Game over conditions
   if (s.health <= 0 || s.latencyBudget <= 0) {
     s.gameOver = true;
     s.running = false;
+    s.audioEvents.gameOver = true;
   }
 
   s.comboMultiplier = 1 + Math.min(s.comboCount * 0.1, 3);
