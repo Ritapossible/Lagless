@@ -1,5 +1,7 @@
-import { Heart, Zap, Timer } from "lucide-react";
+import { useState } from "react";
+import { Heart, Zap, Timer, Volume2, VolumeX } from "lucide-react";
 import { GameState } from "@/game/types";
+import { toggleMute, isMuted } from "@/game/audio";
 import gmumIcon from "@/assets/gmum-character.jpg";
 
 interface GameHUDProps {
@@ -15,6 +17,7 @@ function formatScore(n: number): string {
 }
 
 const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
+  const [muted, setMuted] = useState(isMuted());
   const healthPercent = (state.health / state.maxHealth) * 100;
   const latencyPercent = (state.latencyBudget / state.maxLatency) * 100;
   const cooldownPercent = state.abilityCooldownTimer > 0
@@ -69,7 +72,16 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
         </div>
 
         {/* Right: Latency + Score */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setMuted(toggleMute())}
+            className="p-1 rounded-full bg-secondary/60 border border-primary/30 active:scale-95 transition-transform"
+          >
+            {muted
+              ? <VolumeX className="w-3.5 h-3.5 text-muted-foreground" />
+              : <Volume2 className="w-3.5 h-3.5 text-primary" />
+            }
+          </button>
           <div className="flex items-center gap-1 rounded-full border border-primary/40 bg-secondary/60 px-2.5 py-1 neon-box">
             <Zap className="w-3.5 h-3.5 text-primary fill-primary" />
             <span className="font-display text-xs font-semibold text-foreground tabular-nums">

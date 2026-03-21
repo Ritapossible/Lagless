@@ -3,6 +3,17 @@
 let audioCtx: AudioContext | null = null;
 let bgmGain: GainNode | null = null;
 let bgmPlaying = false;
+let muted = false;
+
+export function isMuted() { return muted; }
+
+export function toggleMute(): boolean {
+  muted = !muted;
+  if (bgmGain) {
+    bgmGain.gain.value = muted ? 0 : 0.06;
+  }
+  return muted;
+}
 let bgmOscillators: OscillatorNode[] = [];
 
 function getCtx(): AudioContext {
@@ -18,6 +29,7 @@ function getCtx(): AudioContext {
 // ─── Sound Effects ───
 
 export function playLaneSwitch() {
+  if (muted) return;
   const ctx = getCtx();
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -32,6 +44,7 @@ export function playLaneSwitch() {
 }
 
 export function playJump() {
+  if (muted) return;
   const ctx = getCtx();
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -46,6 +59,7 @@ export function playJump() {
 }
 
 export function playPickup() {
+  if (muted) return;
   const ctx = getCtx();
   const t = ctx.currentTime;
   // Two-tone chime
@@ -63,6 +77,7 @@ export function playPickup() {
 }
 
 export function playHit() {
+  if (muted) return;
   const ctx = getCtx();
   const t = ctx.currentTime;
   // Noise burst + low thud
@@ -98,6 +113,7 @@ export function playHit() {
 }
 
 export function playAbility() {
+  if (muted) return;
   const ctx = getCtx();
   const t = ctx.currentTime;
   // Rising sweep with shimmer
@@ -127,6 +143,7 @@ export function playAbility() {
 }
 
 export function playLevelUp() {
+  if (muted) return;
   const ctx = getCtx();
   const t = ctx.currentTime;
   // Ascending arpeggio
@@ -147,6 +164,7 @@ export function playLevelUp() {
 }
 
 export function playGameOver() {
+  if (muted) return;
   const ctx = getCtx();
   const t = ctx.currentTime;
   // Descending tones
