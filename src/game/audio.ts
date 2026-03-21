@@ -77,6 +77,7 @@ export function playPickup() {
 }
 
 export function playHit() {
+  if (muted) return;
   const ctx = getCtx();
   const t = ctx.currentTime;
   // Noise burst + low thud
