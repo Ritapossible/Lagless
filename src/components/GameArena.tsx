@@ -52,6 +52,13 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
 
       stateRef.current = updateGame(stateRef.current, dt);
 
+      // Process audio events
+      const ae = stateRef.current.audioEvents;
+      if (ae.hit) playHit();
+      if (ae.pickup) playPickup();
+      if (ae.levelUp) playLevelUp();
+      if (ae.gameOver) { playGameOver(); stopBGM(); }
+
       // Reset scale before drawing
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       const dpr = window.devicePixelRatio || 1;
