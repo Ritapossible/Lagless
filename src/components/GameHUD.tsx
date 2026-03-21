@@ -66,8 +66,8 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 rounded-full border border-primary/40 bg-secondary/60 px-2.5 py-1 neon-box">
             <Zap className="w-3.5 h-3.5 text-primary fill-primary" />
-            <span className="font-display text-xs font-semibold text-foreground">
-              {Math.floor(state.score)}
+            <span className="font-display text-xs font-semibold text-foreground tabular-nums">
+              {formatScore(Math.floor(state.score))}
             </span>
           </div>
         </div>
