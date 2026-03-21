@@ -5,9 +5,9 @@ import { GameState } from "@/game/types";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 
-const GameArena = ({ onExit }: { onExit: () => void }) => {
+const GameArena = ({ onExit, character }: { onExit: () => void; character?: import("@/game/types").Character }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const stateRef = useRef<GameState>(createInitialState());
+  const stateRef = useRef<GameState>(createInitialState(character));
   const animRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);

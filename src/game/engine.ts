@@ -1,6 +1,6 @@
 import { GameState, Obstacle, Pickup, WORLDS, CHARACTERS, LaneState } from './types';
 
-export function createInitialState(): GameState {
+export function createInitialState(character?: import('./types').Character): GameState {
   const worldConfig = WORLDS[0];
   return {
     running: false,
@@ -32,7 +32,7 @@ export function createInitialState(): GameState {
     abilityActive: false,
     abilityCooldownTimer: 0,
     abilityDurationTimer: 0,
-    character: CHARACTERS[0],
+    character: character || CHARACTERS[0],
     worldConfig,
     laneChangeProgress: 1,
     frameCount: 0,
