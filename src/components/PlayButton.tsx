@@ -1,6 +1,11 @@
+import { useNavigate } from "react-router-dom";
+
 const PlayButton = () => {
+  const navigate = useNavigate();
+
   return (
     <button
+      onClick={() => navigate("/play")}
       className="relative group px-16 py-4 font-display text-2xl font-bold tracking-[0.3em] uppercase
         border-2 border-primary rounded-xl
         bg-primary/10 text-foreground
