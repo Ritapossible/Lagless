@@ -155,6 +155,7 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
     lastTimeRef.current = 0;
     setShowGameOver(false);
     setHudState(stateRef.current);
+    startBGM();
     animRef.current = requestAnimationFrame(function loop(time: number) {
       if (!lastTimeRef.current) lastTimeRef.current = time;
       const dt = Math.min((time - lastTimeRef.current) / 1000, 0.05);
@@ -166,6 +167,14 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
       if (!ctx) return;
 
       stateRef.current = updateGame(stateRef.current, dt);
+
+      // Process audio events
+      const ae = stateRef.current.audioEvents;
+      if (ae.hit) playHit();
+      if (ae.pickup) playPickup();
+      if (ae.levelUp) playLevelUp();
+      if (ae.gameOver) { playGameOver(); stopBGM(); }
+
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       const dpr = window.devicePixelRatio || 1;
       ctx.scale(dpr, dpr);
