@@ -1,4 +1,7 @@
 import { GameState, LaneState } from './types';
+import warpRunnerImg from '@/assets/char-warp-runner.png';
+import relayMasterImg from '@/assets/char-relay-master.png';
+import nodeEngineerImg from '@/assets/char-node-engineer.png';
 
 const LANE_COLORS: Record<LaneState, string> = {
   fast: 'hsl(200, 100%, 50%)',
@@ -13,6 +16,21 @@ const LANE_GLOW: Record<LaneState, string> = {
   collapsing: 'rgba(255, 180, 0, 0.25)',
   relay: 'rgba(0, 255, 180, 0.4)',
 };
+
+// Cache loaded images
+const charImages: Record<string, HTMLImageElement> = {};
+function getCharImage(abilityType: string): HTMLImageElement | null {
+  if (charImages[abilityType]?.complete) return charImages[abilityType];
+  if (!charImages[abilityType]) {
+    const img = new Image();
+    const src = abilityType === 'speed_warp' ? warpRunnerImg
+      : abilityType === 'relay_chain' ? relayMasterImg
+      : nodeEngineerImg;
+    img.src = src;
+    charImages[abilityType] = img;
+  }
+  return null;
+}
 
 export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: number, h: number) {
   const { worldConfig } = state;
@@ -78,7 +96,6 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
       const x2Left = vanishX - w2 / 2 + (w2 / 3) * lane;
       const x2Right = x2Left + w2 / 3;
 
-      // Lane floor
       const zPhase = (state.distance * 2 + row * 40) % 80;
       const gridAlpha = zPhase < 40 ? 0.15 : 0.08;
 
@@ -91,7 +108,6 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
       ctx.closePath();
       ctx.fill();
 
-      // Lane borders
       if (row % 3 === 0) {
         ctx.strokeStyle = LANE_COLORS[laneState].replace(')', `, ${0.4 * (1 - t)})`).replace('hsl', 'hsla');
         ctx.lineWidth = 1;
@@ -102,7 +118,6 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
       }
     }
 
-    // Horizontal grid lines
     if (row % 2 === 0) {
       ctx.strokeStyle = `rgba(0, 150, 255, ${0.1 * (1 - t)})`;
       ctx.lineWidth = 0.5;
@@ -142,7 +157,6 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
     ctx.fillStyle = obs.type === 'spam' ? '#ff0055' : obs.type === 'storm' ? '#ff6600' : '#ff2222';
     ctx.fillRect(x - size / 2, y - size, size, size);
     
-    // Icon on obstacle
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     ctx.font = `bold ${size * 0.5}px monospace`;
     ctx.textAlign = 'center';
@@ -167,7 +181,6 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
     ctx.shadowColor = color;
     ctx.shadowBlur = 20;
     
-    // Diamond shape
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.moveTo(x, y - size + bobY);
@@ -177,7 +190,6 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
     ctx.closePath();
     ctx.fill();
 
-    // Score text
     if (p.type === 'score') {
       ctx.fillStyle = '#fff';
       ctx.font = `bold ${size * 0.4}px monospace`;
@@ -187,13 +199,12 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
     ctx.restore();
   }
 
-  // Render player
+  // Render player as character sprite
   const playerT = 0.82;
   const playerBaseY = vanishY + (bottomY - vanishY) * playerT;
   const wAtPlayer = tunnelWidthTop + (tunnelWidthBottom - tunnelWidthTop) * playerT;
   const playerLaneW = wAtPlayer / 3;
   
-  // Interpolated lane position
   let effectiveLane = state.currentLane;
   if (state.currentLane !== state.targetLane) {
     effectiveLane = state.currentLane + (state.targetLane - state.currentLane) * state.laneChangeProgress;
@@ -201,37 +212,47 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
   
   const playerX = vanishX - wAtPlayer / 2 + playerLaneW * effectiveLane + playerLaneW / 2;
   const jumpOffset = state.playerY * 15;
-  const playerSize = 22;
-
-  // Player glow
-  ctx.save();
-  const glowColor = state.abilityActive ? 'rgba(0, 255, 200, 0.6)' : 'rgba(0, 150, 255, 0.4)';
-  ctx.shadowColor = state.abilityActive ? '#00ffcc' : '#0088ff';
-  ctx.shadowBlur = 25;
-
-  // Player ship/character shape (chevron)
-  ctx.fillStyle = state.abilityActive ? '#00ffcc' : '#00aaff';
-  ctx.strokeStyle = state.abilityActive ? '#00ffee' : '#44ccff';
-  ctx.lineWidth = 2;
-  
   const py = playerBaseY - jumpOffset;
+  const charSize = 48;
+
+  ctx.save();
+
+  // Glow under player
+  const glowColor = state.abilityActive ? 'rgba(0, 255, 200, 0.5)' : 'rgba(0, 150, 255, 0.35)';
+  ctx.shadowColor = state.abilityActive ? '#00ffcc' : '#0088ff';
+  ctx.shadowBlur = 30;
+  ctx.fillStyle = glowColor;
   ctx.beginPath();
-  ctx.moveTo(playerX, py - playerSize);
-  ctx.lineTo(playerX + playerSize * 0.7, py + playerSize * 0.3);
-  ctx.lineTo(playerX + playerSize * 0.3, py);
-  ctx.lineTo(playerX, py + playerSize * 0.5);
-  ctx.lineTo(playerX - playerSize * 0.3, py);
-  ctx.lineTo(playerX - playerSize * 0.7, py + playerSize * 0.3);
-  ctx.closePath();
+  ctx.ellipse(playerX, py + charSize * 0.3, charSize * 0.4, 6, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.stroke();
 
   // Engine trail
-  const trailGrad = ctx.createLinearGradient(playerX, py + playerSize * 0.5, playerX, py + playerSize * 2);
-  trailGrad.addColorStop(0, state.abilityActive ? 'rgba(0, 255, 200, 0.6)' : 'rgba(0, 150, 255, 0.5)');
+  const trailGrad = ctx.createLinearGradient(playerX, py + charSize * 0.3, playerX, py + charSize * 1.2);
+  trailGrad.addColorStop(0, state.abilityActive ? 'rgba(0, 255, 200, 0.5)' : 'rgba(0, 150, 255, 0.4)');
   trailGrad.addColorStop(1, 'transparent');
   ctx.fillStyle = trailGrad;
-  ctx.fillRect(playerX - 5, py + playerSize * 0.3, 10, playerSize * 1.5);
+  ctx.fillRect(playerX - 8, py + charSize * 0.2, 16, charSize * 0.9);
+
+  // Draw character image
+  const charImg = getCharImage(state.character.ability);
+  if (charImg) {
+    ctx.drawImage(charImg, playerX - charSize / 2, py - charSize * 0.7, charSize, charSize);
+  } else {
+    // Fallback circle while loading
+    ctx.fillStyle = state.abilityActive ? '#00ffcc' : '#00aaff';
+    ctx.beginPath();
+    ctx.arc(playerX, py - charSize * 0.2, 14, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Ability aura
+  if (state.abilityActive) {
+    ctx.strokeStyle = 'rgba(0, 255, 200, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(playerX, py - charSize * 0.2, charSize * 0.55 + Math.sin(state.frameCount * 0.15) * 4, 0, Math.PI * 2);
+    ctx.stroke();
+  }
 
   ctx.restore();
 

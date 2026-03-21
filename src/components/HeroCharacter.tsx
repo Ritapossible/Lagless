@@ -1,4 +1,4 @@
-import gmumCharacter from "@/assets/gmum-character.jpg";
+import gmumCharacter from "@/assets/gmum-character.png";
 
 const HeroCharacter = () => {
   return (
