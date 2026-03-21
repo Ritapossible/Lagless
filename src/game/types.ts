@@ -73,6 +73,8 @@ export interface GameState {
   laneChangeProgress: number; // 0-1 interpolation
   frameCount: number;
   streakTimer: number;
+  levelUpDisplay: number; // countdown timer for level-up banner (seconds)
+  levelUpName: string; // world name to display
 }
 
 export const WORLDS: WorldConfig[] = [

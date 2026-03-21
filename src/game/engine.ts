@@ -188,6 +188,11 @@ export function updateGame(state: GameState, dt: number): GameState {
     s.abilityCooldownTimer -= dt * 1000;
   }
 
+  // Level-up display countdown
+  if (s.levelUpDisplay > 0) {
+    s.levelUpDisplay = Math.max(0, s.levelUpDisplay - dt);
+  }
+
   // Level progression
   const newLevel = Math.floor(s.distance / 500) + 1;
   if (newLevel > s.level) {
@@ -199,6 +204,8 @@ export function updateGame(state: GameState, dt: number): GameState {
       s.speed = s.worldConfig.baseSpeed;
     }
     s.speed += 0.3;
+    s.levelUpDisplay = 2.5;
+    s.levelUpName = s.worldConfig.name;
   }
 
   // Game over conditions
