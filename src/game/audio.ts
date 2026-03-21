@@ -113,6 +113,7 @@ export function playHit() {
 }
 
 export function playAbility() {
+  if (muted) return;
   const ctx = getCtx();
   const t = ctx.currentTime;
   // Rising sweep with shimmer
