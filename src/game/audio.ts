@@ -29,6 +29,7 @@ function getCtx(): AudioContext {
 // ─── Sound Effects ───
 
 export function playLaneSwitch() {
+  if (muted) return;
   const ctx = getCtx();
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
