@@ -1,6 +1,6 @@
 import { GameState, Obstacle, Pickup, WORLDS, CHARACTERS, LaneState } from './types';
 
-export function createInitialState(): GameState {
+export function createInitialState(character?: import('./types').Character): GameState {
   const worldConfig = WORLDS[0];
   return {
     running: false,
