@@ -39,6 +39,7 @@ export function createInitialState(character?: import('./types').Character): Gam
     streakTimer: 0,
     levelUpDisplay: 0,
     levelUpName: '',
+    audioEvents: { hit: false, pickup: false, levelUp: false, gameOver: false },
   };
 }
 
