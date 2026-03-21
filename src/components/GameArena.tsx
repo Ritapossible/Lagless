@@ -17,11 +17,14 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
   const [showInstructions, setShowInstructions] = useState(true);
   const characterRef = useRef(character);
 
-  // Start game after instructions dismissed
+  // Start game + BGM after instructions dismissed
   useEffect(() => {
     if (!showInstructions) {
+      resumeAudio();
+      startBGM();
       stateRef.current = { ...stateRef.current, running: true };
     }
+    return () => { stopBGM(); };
   }, [showInstructions]);
 
   // Game loop
