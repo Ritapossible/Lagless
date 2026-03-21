@@ -107,14 +107,14 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
     const absDy = Math.abs(dy);
 
     if (dt < 300 && absDx < 20 && absDy < 20) {
-      // Tap = jump
       stateRef.current = jump(stateRef.current);
+      playJump();
     } else if (absDx > absDy && absDx > 30) {
-      // Horizontal swipe = lane switch
       stateRef.current = switchLane(stateRef.current, dx > 0 ? 1 : -1);
+      playLaneSwitch();
     } else if (dy < -40) {
-      // Swipe up = jump
       stateRef.current = jump(stateRef.current);
+      playJump();
     }
   }, []);
 
@@ -123,12 +123,16 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft" || e.key === "a") {
         stateRef.current = switchLane(stateRef.current, -1);
+        playLaneSwitch();
       } else if (e.key === "ArrowRight" || e.key === "d") {
         stateRef.current = switchLane(stateRef.current, 1);
+        playLaneSwitch();
       } else if (e.key === " " || e.key === "ArrowUp" || e.key === "w") {
         stateRef.current = jump(stateRef.current);
+        playJump();
       } else if (e.key === "e" || e.key === "Shift") {
         stateRef.current = activateAbility(stateRef.current);
+        playAbility();
       }
     };
     window.addEventListener("keydown", handleKey);
@@ -137,6 +141,7 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
 
   const handleAbility = useCallback(() => {
     stateRef.current = activateAbility(stateRef.current);
+    playAbility();
   }, []);
 
   const handlePause = useCallback(() => {
