@@ -44,6 +44,7 @@ export function playLaneSwitch() {
 }
 
 export function playJump() {
+  if (muted) return;
   const ctx = getCtx();
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
