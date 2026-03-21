@@ -143,6 +143,7 @@ export function playAbility() {
 }
 
 export function playLevelUp() {
+  if (muted) return;
   const ctx = getCtx();
   const t = ctx.currentTime;
   // Ascending arpeggio
