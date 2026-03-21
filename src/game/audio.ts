@@ -164,6 +164,7 @@ export function playLevelUp() {
 }
 
 export function playGameOver() {
+  if (muted) return;
   const ctx = getCtx();
   const t = ctx.currentTime;
   // Descending tones
