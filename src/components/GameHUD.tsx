@@ -82,9 +82,9 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
               : <Volume2 className="w-3.5 h-3.5 text-primary" />
             }
           </button>
-          <div className="flex items-center gap-1 rounded-full border border-primary/40 bg-secondary/60 px-2.5 py-1 neon-box">
-            <Zap className="w-3.5 h-3.5 text-primary fill-primary" />
-            <span className="font-display text-xs font-semibold text-foreground tabular-nums">
+          <div className="flex items-center gap-1 rounded-full border border-primary/40 bg-secondary/60 px-2.5 py-1 neon-box min-w-[60px] justify-center">
+            <Zap className="w-3.5 h-3.5 text-primary fill-primary flex-shrink-0" />
+            <span className="font-display text-[11px] font-semibold text-foreground tabular-nums whitespace-nowrap">
               {formatScore(Math.floor(state.score))}
             </span>
           </div>
