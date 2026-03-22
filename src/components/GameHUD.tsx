@@ -62,11 +62,11 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
         </div>
 
         {/* Center: Level */}
-        <div className="text-center">
+        <div className="text-center flex-shrink-0">
           <span className="font-display text-xs tracking-widest uppercase text-muted-foreground">
-            Level {state.level}
+            Lv.{state.level}
           </span>
-          <p className="font-display text-[10px] tracking-wider text-primary/70">
+          <p className="font-display text-[9px] tracking-wider text-primary/70 truncate max-w-[80px]">
             {state.worldConfig.name}
           </p>
         </div>
