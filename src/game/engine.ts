@@ -1,5 +1,7 @@
 import { GameState, Obstacle, Pickup, WORLDS, CHARACTERS, LaneState } from './types';
 
+const BOSS_LEVELS = [25, 39];
+
 export function createInitialState(character?: import('./types').Character): GameState {
   const worldConfig = WORLDS[0];
   return {
@@ -39,6 +41,7 @@ export function createInitialState(character?: import('./types').Character): Gam
     streakTimer: 0,
     levelUpDisplay: 0,
     levelUpName: '',
+    isBossLevel: false,
     audioEvents: { hit: false, pickup: false, levelUp: false, gameOver: false },
   };
 }
@@ -47,6 +50,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   if (!state.running || state.paused || state.gameOver) return state;
 
   const s = { ...state };
+  const wc = s.worldConfig;
   s.audioEvents = { hit: false, pickup: false, levelUp: false, gameOver: false };
   s.frameCount++;
   s.distance += s.speed * dt;
@@ -74,27 +78,35 @@ export function updateGame(state: GameState, dt: number): GameState {
     }
   }
 
-  // Latency drain
+  // Boss level multiplier for pressure
+  const bossMulti = s.isBossLevel ? 1.6 : 1;
+
+  // Latency drain — uses stage-specific rates
   const currentLaneState = s.lanes[s.currentLane].state;
-  let drainRate = 3;
-  if (currentLaneState === 'congested') drainRate = 8;
+  let drainRate = 3 * wc.latencyDrainRate * bossMulti;
+  if (currentLaneState === 'congested') drainRate = wc.latencyDrainCongested * bossMulti;
   if (currentLaneState === 'fast') {
     s.streakTimer += dt;
-    if (s.streakTimer > 2) drainRate = 1.5; // optimized streak
+    if (s.streakTimer > 2) drainRate = 1.5 * wc.latencyDrainRate;
   } else {
     s.streakTimer = 0;
   }
+  // Stability zones (FlexNode Dominion)
+  if (wc.stabilityZones && currentLaneState === 'fast') {
+    drainRate *= 0.5;
+  }
   s.latencyBudget = Math.max(0, s.latencyBudget - drainRate * dt);
 
-  // Relay boost refill
+  // Relay boost refill — stage-specific rate
   if (currentLaneState === 'relay') {
-    s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + 15 * dt);
+    s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + wc.relayRefillRate * dt);
     s.comboCount++;
-    s.comboMultiplier = 1 + Math.min(s.comboCount * 0.1, 3);
+    s.comboMultiplier = 1 + Math.min(s.comboCount * 0.1, wc.comboMultiplierCap);
   }
 
-  // Spawn obstacles
-  if (Math.random() < s.worldConfig.obstacleDensity) {
+  // Spawn obstacles — boss levels spike density
+  const obsDensity = wc.obstacleDensity * bossMulti;
+  if (Math.random() < obsDensity) {
     const lane = Math.floor(Math.random() * 3);
     s.obstacles = [...s.obstacles, {
       lane,
@@ -107,7 +119,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   }
 
   // Spawn pickups
-  if (Math.random() < s.worldConfig.relayFrequency) {
+  if (Math.random() < wc.relayFrequency) {
     const lane = Math.floor(Math.random() * 3);
     s.pickups = [...s.pickups, {
       lane,
@@ -117,16 +129,24 @@ export function updateGame(state: GameState, dt: number): GameState {
     }];
   }
 
-  // Update lane states
-  s.lanes = s.lanes.map((lane, i) => {
+  // Update lane states — stage-specific congestion/disable chance
+  s.lanes = s.lanes.map((lane) => {
     const l = { ...lane };
-    if (Math.random() < 0.002) {
+    // Congested lane chance per stage
+    if (Math.random() < (wc.congestedLaneChance * bossMulti)) {
       const states: LaneState[] = ['fast', 'congested', 'relay'];
-      if (s.worldConfig.laneDisableChance > 0 && Math.random() < s.worldConfig.laneDisableChance * 10) {
-        states.push('collapsing');
+      // Weighted: more congested in Stage 1, more relay in Stage 3
+      const roll = Math.random();
+      if (wc.laneDisableChance > 0 && Math.random() < wc.laneDisableChance * 10) {
+        l.state = 'collapsing';
+        l.timer = 3;
+      } else if (roll < 0.4) {
+        l.state = 'congested';
+      } else if (roll < 0.4 + wc.relayFrequency * 5) {
+        l.state = 'relay';
+      } else {
+        l.state = 'fast';
       }
-      l.state = states[Math.floor(Math.random() * states.length)];
-      l.timer = l.state === 'collapsing' ? 3 : 0;
     }
     if (l.state === 'collapsing') {
       l.timer -= dt;
@@ -144,15 +164,16 @@ export function updateGame(state: GameState, dt: number): GameState {
     .map(p => ({ ...p, z: p.z - s.speed * 60 * dt }))
     .filter(p => p.z > -100);
 
-  // Collision detection
+  // Collision detection — stage-specific damage
   const playerZ = 50;
   s.obstacles = s.obstacles.map(o => {
     if (!o.hit && o.lane === s.currentLane && Math.abs(o.z - playerZ) < 40 && s.playerY < 2) {
       if (!s.abilityActive || s.character.ability !== 'speed_warp') {
-        s.health = Math.max(0, s.health - 10);
+        const dmg = Math.round(10 * wc.mistakePenalty);
+        s.health = Math.max(0, s.health - dmg);
         s.comboCount = 0;
         s.comboMultiplier = 1;
-        s.latencyBudget = Math.max(0, s.latencyBudget - 5);
+        s.latencyBudget = Math.max(0, s.latencyBudget - 5 * wc.mistakePenalty);
         s.audioEvents.hit = true;
         return { ...o, hit: true };
       }
@@ -184,7 +205,7 @@ export function updateGame(state: GameState, dt: number): GameState {
     if (s.abilityDurationTimer <= 0) {
       s.abilityActive = false;
       if (s.character.ability === 'speed_warp') {
-        s.speed = s.worldConfig.baseSpeed;
+        s.speed = wc.baseSpeed;
       }
     }
   }
@@ -197,24 +218,28 @@ export function updateGame(state: GameState, dt: number): GameState {
     s.levelUpDisplay = Math.max(0, s.levelUpDisplay - dt);
   }
 
-  // Level progression — spread worlds across more levels
+  // Level progression
   const newLevel = Math.floor(s.distance / 500) + 1;
   if (newLevel > s.level) {
     s.level = newLevel;
-    // World mapping: 1-5=W0, 6-12=W1, 13-22=W2, 23-35=W3, 36+=W4(Optimum)
+    // World mapping: 1-12=W0, 13-25=W1, 26-32=W2, 33-39=W3, 40+=W4
     let newWorld = 0;
     if (s.level >= 40) newWorld = 4;
-    else if (s.level >= 23) newWorld = 3;
-    else if (s.level >= 13) newWorld = 2;
-    else if (s.level >= 6) newWorld = 1;
+    else if (s.level >= 33) newWorld = 3;
+    else if (s.level >= 26) newWorld = 2;
+    else if (s.level >= 13) newWorld = 1;
+
+    // Boss level detection
+    s.isBossLevel = BOSS_LEVELS.includes(s.level);
+
     if (newWorld !== s.world) {
       s.world = newWorld;
       s.worldConfig = WORLDS[newWorld];
-      s.speed = s.worldConfig.baseSpeed;
+      s.speed = WORLDS[newWorld].baseSpeed;
     }
     s.speed += 0.3;
     s.levelUpDisplay = 2.5;
-    s.levelUpName = s.worldConfig.name;
+    s.levelUpName = s.isBossLevel ? `⚠ BOSS WAVE ⚠` : s.worldConfig.name;
     s.audioEvents.levelUp = true;
   }
 
@@ -225,7 +250,7 @@ export function updateGame(state: GameState, dt: number): GameState {
     s.audioEvents.gameOver = true;
   }
 
-  s.comboMultiplier = 1 + Math.min(s.comboCount * 0.1, 3);
+  s.comboMultiplier = 1 + Math.min(s.comboCount * 0.1, wc.comboMultiplierCap);
 
   return s;
 }
