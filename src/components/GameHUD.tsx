@@ -173,6 +173,17 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
         </button>
       </div>
 
+      {/* Low latency vignette warning */}
+      {latencyPercent < 30 && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            boxShadow: `inset 0 0 ${80 - latencyPercent * 2}px ${latencyPercent < 15 ? 'hsla(0, 80%, 40%, 0.6)' : 'hsla(0, 70%, 30%, 0.35)'}`,
+            animation: latencyPercent < 15 ? 'pulse 1s ease-in-out infinite' : 'none',
+          }}
+        />
+      )}
+
       {/* Level-up banner */}
       {state.levelUpDisplay > 0 && (
         <div
