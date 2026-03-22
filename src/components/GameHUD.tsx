@@ -27,7 +27,7 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
   return (
     <div className="absolute inset-0 pointer-events-none z-10">
       {/* Top bar */}
-      <div className="flex items-start justify-between px-3 pt-3 pointer-events-auto">
+      <div className="flex items-start justify-between px-3 pt-3 pointer-events-auto gap-2">
         {/* Left: avatar + health */}
         <div className="flex items-center gap-2">
           <button onClick={onPause} className="active:scale-95 transition-transform">
@@ -62,11 +62,11 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
         </div>
 
         {/* Center: Level */}
-        <div className="text-center">
+        <div className="text-center flex-shrink-0">
           <span className="font-display text-xs tracking-widest uppercase text-muted-foreground">
-            Level {state.level}
+            Lv.{state.level}
           </span>
-          <p className="font-display text-[10px] tracking-wider text-primary/70">
+          <p className="font-display text-[9px] tracking-wider text-primary/70 truncate max-w-[80px]">
             {state.worldConfig.name}
           </p>
         </div>
@@ -82,9 +82,9 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
               : <Volume2 className="w-3.5 h-3.5 text-primary" />
             }
           </button>
-          <div className="flex items-center gap-1 rounded-full border border-primary/40 bg-secondary/60 px-2.5 py-1 neon-box">
-            <Zap className="w-3.5 h-3.5 text-primary fill-primary" />
-            <span className="font-display text-xs font-semibold text-foreground tabular-nums">
+          <div className="flex items-center gap-1 rounded-full border border-primary/40 bg-secondary/60 px-2.5 py-1 neon-box min-w-[60px] justify-center">
+            <Zap className="w-3.5 h-3.5 text-primary fill-primary flex-shrink-0" />
+            <span className="font-display text-[11px] font-semibold text-foreground tabular-nums whitespace-nowrap">
               {formatScore(Math.floor(state.score))}
             </span>
           </div>
@@ -172,6 +172,17 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
           )}
         </button>
       </div>
+
+      {/* Low latency vignette warning */}
+      {latencyPercent < 30 && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            boxShadow: `inset 0 0 ${80 - latencyPercent * 2}px ${latencyPercent < 15 ? 'hsla(0, 80%, 40%, 0.6)' : 'hsla(0, 70%, 30%, 0.35)'}`,
+            animation: latencyPercent < 15 ? 'pulse 1s ease-in-out infinite' : 'none',
+          }}
+        />
+      )}
 
       {/* Level-up banner */}
       {state.levelUpDisplay > 0 && (

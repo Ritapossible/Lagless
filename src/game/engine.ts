@@ -197,11 +197,16 @@ export function updateGame(state: GameState, dt: number): GameState {
     s.levelUpDisplay = Math.max(0, s.levelUpDisplay - dt);
   }
 
-  // Level progression
+  // Level progression — spread worlds across more levels
   const newLevel = Math.floor(s.distance / 500) + 1;
   if (newLevel > s.level) {
     s.level = newLevel;
-    const newWorld = Math.min(Math.floor((s.level - 1) / 3), WORLDS.length - 1);
+    // World mapping: 1-5=W0, 6-12=W1, 13-22=W2, 23-35=W3, 36+=W4(Optimum)
+    let newWorld = 0;
+    if (s.level >= 36) newWorld = 4;
+    else if (s.level >= 23) newWorld = 3;
+    else if (s.level >= 13) newWorld = 2;
+    else if (s.level >= 6) newWorld = 1;
     if (newWorld !== s.world) {
       s.world = newWorld;
       s.worldConfig = WORLDS[newWorld];
