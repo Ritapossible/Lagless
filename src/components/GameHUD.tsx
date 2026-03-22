@@ -27,7 +27,7 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
   return (
     <div className="absolute inset-0 pointer-events-none z-10">
       {/* Top bar */}
-      <div className="flex items-start justify-between px-3 pt-3 pointer-events-auto">
+      <div className="flex items-start justify-between px-3 pt-3 pointer-events-auto gap-2">
         {/* Left: avatar + health */}
         <div className="flex items-center gap-2">
           <button onClick={onPause} className="active:scale-95 transition-transform">
