@@ -255,6 +255,29 @@ export function updateGame(state: GameState, dt: number): GameState {
   if (s.health <= 0 || s.latencyBudget <= 0) {
     s.gameOver = true;
     s.running = false;
+    s.bestCombo = Math.max(s.bestCombo, s.comboMultiplier);
+    // Dynamic failure cause
+    const worldNames = ['Congestion Zone', 'Fragmented Grid', 'Mesh Awakening', 'FlexNode Dominion', 'Optimum Layer'];
+    const stageCauses: Record<string, string[]> = {
+      'Congestion Zone': ['Network Saturation', 'Congestion Overload'],
+      'Fragmented Grid': ['Grid Collapse', 'Fragmentation Storm'],
+      'Mesh Awakening': ['Relay Chain Break', 'Mesh Link Failure'],
+      'FlexNode Dominion': ['Stability Field Lost', 'FlexNode Misdeployment'],
+      'Optimum Layer': ['Over-Acceleration Fault', 'Precision Routing Failure'],
+    };
+    if (s.health <= 0) {
+      const causes = ['Packet Integrity Compromised', 'Congestion Collision', 'Signal Fragmentation Impact'];
+      s.failureCause = causes[Math.floor(Math.random() * causes.length)];
+    } else {
+      const causes = ['Latency Budget Exhausted', 'Latency Spike Detected', 'Relay Missed Window'];
+      s.failureCause = causes[Math.floor(Math.random() * causes.length)];
+    }
+    // Override with stage-specific cause sometimes
+    const wName = worldNames[s.world] || 'Congestion Zone';
+    if (Math.random() < 0.4 && stageCauses[wName]) {
+      const sc = stageCauses[wName];
+      s.failureCause = sc[Math.floor(Math.random() * sc.length)];
+    }
     s.audioEvents.gameOver = true;
   }
 
