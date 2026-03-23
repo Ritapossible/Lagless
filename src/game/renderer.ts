@@ -53,7 +53,7 @@ let particlesInited = false;
 
 function initParticles(w: number, h: number) {
   dataParticles = [];
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 30; i++) {
     dataParticles.push({
       x: Math.random() * w, y: Math.random() * h, z: Math.random() * 800,
       speed: 2 + Math.random() * 4, lane: Math.floor(Math.random() * 3),
