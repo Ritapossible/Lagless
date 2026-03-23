@@ -272,9 +272,9 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
   }
 
   // Draw lanes with perspective
-  for (let row = 0; row < 20; row++) {
-    const t = row / 20;
-    const nextT = (row + 1) / 20;
+  for (let row = 0; row < 15; row++) {
+    const t = row / 15;
+    const nextT = (row + 1) / 15;
     const y1 = vanishY + (bottomY - vanishY) * t;
     const y2 = vanishY + (bottomY - vanishY) * nextT;
     const w1 = tunnelWidthTop + (tunnelWidthBottom - tunnelWidthTop) * t;
