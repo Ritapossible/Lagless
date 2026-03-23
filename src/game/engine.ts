@@ -42,6 +42,11 @@ export function createInitialState(character?: import('./types').Character): Gam
     levelUpDisplay: 0,
     levelUpName: '',
     isBossLevel: false,
+    relaysUsed: 0,
+    flexNodesDeployed: 0,
+    routingMistakes: 0,
+    bestCombo: 0,
+    failureCause: '',
     audioEvents: { hit: false, pickup: false, levelUp: false, gameOver: false },
   };
 }
@@ -101,6 +106,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   if (currentLaneState === 'relay') {
     s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + wc.relayRefillRate * dt);
     s.comboCount++;
+    s.bestCombo = Math.max(s.bestCombo, s.comboMultiplier);
     s.comboMultiplier = 1 + Math.min(s.comboCount * 0.1, wc.comboMultiplierCap);
   }
 
@@ -174,6 +180,7 @@ export function updateGame(state: GameState, dt: number): GameState {
         s.comboCount = 0;
         s.comboMultiplier = 1;
         s.latencyBudget = Math.max(0, s.latencyBudget - 5 * wc.mistakePenalty);
+        s.routingMistakes++;
         s.audioEvents.hit = true;
         return { ...o, hit: true };
       }
@@ -188,6 +195,7 @@ export function updateGame(state: GameState, dt: number): GameState {
       if (p.type === 'relay') {
         s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + 20);
         s.comboCount++;
+        s.relaysUsed++;
         s.score += 50 * s.comboMultiplier;
       } else if (p.type === 'health') {
         s.health = Math.min(s.maxHealth, s.health + 10);
@@ -247,6 +255,29 @@ export function updateGame(state: GameState, dt: number): GameState {
   if (s.health <= 0 || s.latencyBudget <= 0) {
     s.gameOver = true;
     s.running = false;
+    s.bestCombo = Math.max(s.bestCombo, s.comboMultiplier);
+    // Dynamic failure cause
+    const worldNames = ['Congestion Zone', 'Fragmented Grid', 'Mesh Awakening', 'FlexNode Dominion', 'Optimum Layer'];
+    const stageCauses: Record<string, string[]> = {
+      'Congestion Zone': ['Network Saturation', 'Congestion Overload'],
+      'Fragmented Grid': ['Grid Collapse', 'Fragmentation Storm'],
+      'Mesh Awakening': ['Relay Chain Break', 'Mesh Link Failure'],
+      'FlexNode Dominion': ['Stability Field Lost', 'FlexNode Misdeployment'],
+      'Optimum Layer': ['Over-Acceleration Fault', 'Precision Routing Failure'],
+    };
+    if (s.health <= 0) {
+      const causes = ['Packet Integrity Compromised', 'Congestion Collision', 'Signal Fragmentation Impact'];
+      s.failureCause = causes[Math.floor(Math.random() * causes.length)];
+    } else {
+      const causes = ['Latency Budget Exhausted', 'Latency Spike Detected', 'Relay Missed Window'];
+      s.failureCause = causes[Math.floor(Math.random() * causes.length)];
+    }
+    // Override with stage-specific cause sometimes
+    const wName = worldNames[s.world] || 'Congestion Zone';
+    if (Math.random() < 0.4 && stageCauses[wName]) {
+      const sc = stageCauses[wName];
+      s.failureCause = sc[Math.floor(Math.random() * sc.length)];
+    }
     s.audioEvents.gameOver = true;
   }
 
@@ -278,6 +309,7 @@ export function activateAbility(state: GameState): GameState {
     s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + 30);
   } else if (s.character.ability === 'node_deploy') {
     s.lanes = s.lanes.map(() => ({ state: 'fast' as const, timer: 0 })) as GameState['lanes'];
+    s.flexNodesDeployed++;
   }
   
   return s;
