@@ -309,6 +309,7 @@ export function activateAbility(state: GameState): GameState {
     s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + 30);
   } else if (s.character.ability === 'node_deploy') {
     s.lanes = s.lanes.map(() => ({ state: 'fast' as const, timer: 0 })) as GameState['lanes'];
+    s.flexNodesDeployed++;
   }
   
   return s;
