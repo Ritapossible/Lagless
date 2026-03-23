@@ -179,6 +179,7 @@ export function updateGame(state: GameState, dt: number): GameState {
         s.comboCount = 0;
         s.comboMultiplier = 1;
         s.latencyBudget = Math.max(0, s.latencyBudget - 5 * wc.mistakePenalty);
+        s.routingMistakes++;
         s.audioEvents.hit = true;
         return { ...o, hit: true };
       }
@@ -193,6 +194,7 @@ export function updateGame(state: GameState, dt: number): GameState {
       if (p.type === 'relay') {
         s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + 20);
         s.comboCount++;
+        s.relaysUsed++;
         s.score += 50 * s.comboMultiplier;
       } else if (p.type === 'health') {
         s.health = Math.min(s.maxHealth, s.health + 10);
