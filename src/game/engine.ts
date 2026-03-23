@@ -106,6 +106,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   if (currentLaneState === 'relay') {
     s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + wc.relayRefillRate * dt);
     s.comboCount++;
+    s.bestCombo = Math.max(s.bestCombo, s.comboMultiplier);
     s.comboMultiplier = 1 + Math.min(s.comboCount * 0.1, wc.comboMultiplierCap);
   }
 
