@@ -38,12 +38,17 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
             />
           </button>
           <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-1">
-              <Heart className="w-3.5 h-3.5 text-neon-magenta fill-neon-magenta" />
-              <Heart className="w-3.5 h-3.5 text-neon-magenta fill-neon-magenta" />
-              {state.health < state.maxHealth * 0.5 && (
-                <Heart className="w-3.5 h-3.5 text-muted-foreground" />
-              )}
+            <div className="flex items-center gap-0.5">
+              {[0, 1, 2].map(i => {
+                const thirdHP = state.maxHealth / 3;
+                const filled = state.health > thirdHP * i;
+                return (
+                  <Heart
+                    key={i}
+                    className={`w-3.5 h-3.5 ${filled ? 'text-neon-magenta fill-neon-magenta' : 'text-muted-foreground'}`}
+                  />
+                );
+              })}
             </div>
             <div className="w-20 h-1.5 rounded-full bg-secondary overflow-hidden">
               <div
@@ -82,9 +87,9 @@ const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
               : <Volume2 className="w-3.5 h-3.5 text-primary" />
             }
           </button>
-          <div className="flex items-center gap-1 rounded-full border border-primary/40 bg-secondary/60 px-2.5 py-1 neon-box min-w-[60px] justify-center">
-            <Zap className="w-3.5 h-3.5 text-primary fill-primary flex-shrink-0" />
-            <span className="font-display text-[11px] font-semibold text-foreground tabular-nums whitespace-nowrap">
+          <div className="flex items-center gap-1 rounded-full border border-primary/40 bg-secondary/60 px-2 py-1 neon-box w-[68px] justify-center overflow-hidden">
+            <Zap className="w-3 h-3 text-primary fill-primary flex-shrink-0" />
+            <span className="font-display text-[10px] font-semibold text-foreground tabular-nums whitespace-nowrap truncate">
               {formatScore(Math.floor(state.score))}
             </span>
           </div>
