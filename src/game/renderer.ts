@@ -88,8 +88,8 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
   // ===== STAGE-SPECIFIC BACKGROUND EFFECTS =====
 
   // Stage 1: Heavy signal noise / static
-  if (worldIdx === 0) {
-    for (let i = 0; i < Math.floor(15 * chaos); i++) {
+  if (worldIdx === 0 && state.frameCount % 2 === 0) {
+    for (let i = 0; i < 8; i++) {
       const ny = Math.random() * h;
       const nw = 20 + Math.random() * 80;
       ctx.fillStyle = `rgba(255, 30, 20, ${0.02 + Math.random() * 0.04})`;
@@ -104,30 +104,25 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
   }
 
   // Stage 2: Glitch storms — fragmented geometry flashes
-  if (worldIdx === 1) {
-    // Random glitch rectangles
+  if (worldIdx === 1 && state.frameCount % 3 === 0) {
     if (Math.random() < chaos * 0.3) {
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 2; i++) {
         const gx = Math.random() * w;
         const gy = vanishY + Math.random() * (bottomY - vanishY);
-        const gw = 10 + Math.random() * 40;
-        const gh = 2 + Math.random() * 8;
         ctx.fillStyle = `rgba(180, 50, 255, ${0.05 + Math.random() * 0.08})`;
-        ctx.fillRect(gx, gy, gw, gh);
+        ctx.fillRect(gx, gy, 10 + Math.random() * 40, 2 + Math.random() * 8);
       }
     }
-    // Scan line distortion
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 3; i++) {
       const sy = Math.random() * h;
-      const offset = (Math.sin(state.frameCount * 0.2 + i * 13) * 3) * chaos;
       ctx.fillStyle = `rgba(160, 60, 255, 0.03)`;
-      ctx.fillRect(offset, sy, w, 1);
+      ctx.fillRect(0, sy, w, 1);
     }
   }
 
   // Stage 3: Flowing mesh links forming dynamically
   if (worldIdx === 2) {
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 5; i++) {
       const phase = (state.frameCount * 0.02 + i * 1.7) % (Math.PI * 2);
       const cx = vanishX + Math.cos(phase * 2) * w * 0.3;
       const cy = vanishY + Math.sin(phase) * (bottomY - vanishY) * 0.6 + (bottomY - vanishY) * 0.2;
@@ -139,11 +134,6 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
       ctx.moveTo(cx, cy);
       ctx.lineTo(nx, ny2);
       ctx.stroke();
-      // Node dots
-      ctx.fillStyle = `rgba(0, 255, 180, ${0.15 + Math.sin(phase) * 0.1})`;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 2, 0, Math.PI * 2);
-      ctx.fill();
     }
   }
 
@@ -192,8 +182,8 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
     ctx.fillStyle = lightGrad;
     ctx.fillRect(0, 0, w, h);
     // Extra smooth speed lines
-    for (let i = 0; i < 20; i++) {
-      const angle = (i / 20) * Math.PI * 2;
+    for (let i = 0; i < 12; i++) {
+      const angle = (i / 12) * Math.PI * 2;
       const phase = (state.distance * 0.15 + i * 30) % 250;
       const len = 30 + phase * 0.6;
       const dist = 40 + phase;
@@ -212,7 +202,7 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
 
   // Stars — colored per world
   const seed = state.frameCount;
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 25; i++) {
     const px = (Math.sin(i * 127.1 + seed * 0.01) * 0.5 + 0.5) * w;
     const py = (Math.cos(i * 311.7 + seed * 0.008) * 0.5 + 0.5) * h * 0.5;
     const brightness = Math.sin(seed * 0.05 + i) * 0.5 + 0.5;
@@ -221,8 +211,8 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
   }
 
   // Speed lines — themed
-  for (let i = 0; i < 12; i++) {
-    const angle = (i / 12) * Math.PI * 2;
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2;
     const phase = (state.distance * 0.1 + i * 50) % 200;
     const len = 20 + phase * 0.5;
     const dist = 50 + phase;
@@ -503,8 +493,8 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
   // ===== ABILITY WORLD EFFECTS =====
   if (state.abilityActive) {
     if (state.character.ability === 'speed_warp') {
-      for (let i = 0; i < 20; i++) {
-        const angle = (i / 20) * Math.PI * 2;
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
         const dist = 30 + ((state.frameCount * 5 + i * 40) % 300);
         const sx = vanishX + Math.cos(angle) * dist * 0.5;
         const sy = vanishY + Math.sin(angle) * dist * 0.25;
@@ -526,7 +516,7 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
       const shimmerAlpha = 0.2 + Math.sin(state.frameCount * 0.2) * 0.1;
       ctx.fillStyle = `rgba(0, 255, 180, ${shimmerAlpha})`;
       ctx.fillRect(0, 0, w, h);
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 5; i++) {
         const hx = vanishX + (Math.random() - 0.5) * w * 0.6;
         const hy = vanishY + Math.random() * (bottomY - vanishY);
         ctx.strokeStyle = `rgba(0, 255, 180, ${0.1 + Math.random() * 0.15})`;
