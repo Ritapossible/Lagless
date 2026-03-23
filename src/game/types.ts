@@ -85,6 +85,11 @@ export interface GameState {
   levelUpDisplay: number;
   levelUpName: string;
   isBossLevel: boolean;
+  relaysUsed: number;
+  flexNodesDeployed: number;
+  routingMistakes: number;
+  bestCombo: number;
+  failureCause: string;
   audioEvents: {
     hit: boolean;
     pickup: boolean;

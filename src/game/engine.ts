@@ -42,6 +42,11 @@ export function createInitialState(character?: import('./types').Character): Gam
     levelUpDisplay: 0,
     levelUpName: '',
     isBossLevel: false,
+    relaysUsed: 0,
+    flexNodesDeployed: 0,
+    routingMistakes: 0,
+    bestCombo: 0,
+    failureCause: '',
     audioEvents: { hit: false, pickup: false, levelUp: false, gameOver: false },
   };
 }
