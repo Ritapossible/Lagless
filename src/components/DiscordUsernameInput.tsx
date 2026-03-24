@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { loadProgress, setDiscordUsername } from "@/game/playerProgress";
 
 interface Props {
@@ -6,7 +6,7 @@ interface Props {
 }
 
 const DiscordUsernameInput = ({ onContinue }: Props) => {
-  const existing = loadProgress().discordUsername;
+  const [existing] = useState(() => loadProgress().discordUsername);
   const [username, setUsername] = useState(existing);
   const [error, setError] = useState("");
 
@@ -21,10 +21,9 @@ const DiscordUsernameInput = ({ onContinue }: Props) => {
   };
 
   // If already has username, skip
-  if (existing) {
-    onContinue();
-    return null;
-  }
+  useEffect(() => {
+    if (existing) onContinue();
+  }, [existing, onContinue]);
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center px-6">
