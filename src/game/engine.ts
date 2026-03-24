@@ -47,6 +47,7 @@ export function createInitialState(character?: import('./types').Character): Gam
     routingMistakes: 0,
     bestCombo: 0,
     failureCause: '',
+    floatingTexts: [],
     audioEvents: { hit: false, pickup: false, levelUp: false, gameOver: false },
   };
 }
