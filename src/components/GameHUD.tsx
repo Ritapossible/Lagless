@@ -8,6 +8,7 @@ interface GameHUDProps {
   state: GameState;
   onAbility: () => void;
   onPause: () => void;
+  trialTimer?: number;
 }
 
 function formatScore(n: number): string {
