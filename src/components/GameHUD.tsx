@@ -8,6 +8,7 @@ interface GameHUDProps {
   state: GameState;
   onAbility: () => void;
   onPause: () => void;
+  trialTimer?: number;
 }
 
 function formatScore(n: number): string {
@@ -16,7 +17,7 @@ function formatScore(n: number): string {
   return n.toLocaleString();
 }
 
-const GameHUD = ({ state, onAbility, onPause }: GameHUDProps) => {
+const GameHUD = ({ state, onAbility, onPause, trialTimer }: GameHUDProps) => {
   const [muted, setMuted] = useState(isMuted());
   const healthPercent = (state.health / state.maxHealth) * 100;
   const latencyPercent = (state.latencyBudget / state.maxLatency) * 100;
