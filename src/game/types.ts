@@ -25,6 +25,14 @@ export interface Pickup {
 
 export type AbilityType = 'speed_warp' | 'relay_chain' | 'node_deploy';
 
+export interface FloatingText {
+  text: string;
+  x: number;   // 0-1 normalized screen position
+  y: number;   // 0-1 normalized
+  life: number; // seconds remaining
+  color: string;
+}
+
 export interface Character {
   name: string;
   ability: AbilityType;
@@ -90,6 +98,7 @@ export interface GameState {
   routingMistakes: number;
   bestCombo: number;
   failureCause: string;
+  floatingTexts: FloatingText[];
   audioEvents: {
     hit: boolean;
     pickup: boolean;
