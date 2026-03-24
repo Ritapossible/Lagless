@@ -634,6 +634,20 @@ export function renderGame(ctx: CanvasRenderingContext2D, state: GameState, w: n
     ctx.fillRect(0, 0, w, h);
   }
 
+  // ===== FLOATING TEXTS =====
+  for (const ft of state.floatingTexts) {
+    const alpha = Math.min(1, ft.life / 0.5);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font = 'bold 11px monospace';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = ft.color;
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = ft.color;
+    ctx.fillText(ft.text, ft.x * w, ft.y * h);
+    ctx.restore();
+  }
+
   // Vanishing point glow — themed
   const vpGrad = ctx.createRadialGradient(vanishX, vanishY, 0, vanishX, vanishY, 80);
   vpGrad.addColorStop(0, `hsla(${theme.vpHue}, 100%, 60%, 0.3)`);

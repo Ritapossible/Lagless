@@ -337,6 +337,9 @@ export function activateAbility(state: GameState): GameState {
   } else if (s.character.ability === 'node_deploy') {
     s.lanes = s.lanes.map(() => ({ state: 'fast' as const, timer: 0 })) as GameState['lanes'];
     s.flexNodesDeployed++;
+    s.floatingTexts = [...s.floatingTexts, {
+      text: 'FlexNode Stabilized +1', x: 0.5, y: 0.5, life: 1.5, color: '#00ffcc',
+    }];
   }
   
   return s;
