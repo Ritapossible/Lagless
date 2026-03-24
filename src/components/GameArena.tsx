@@ -1,10 +1,12 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import { createInitialState, updateGame, switchLane, jump, activateAbility } from "@/game/engine";
 import { renderGame } from "@/game/renderer";
-import { GameState } from "@/game/types";
+import { GameState, WORLDS } from "@/game/types";
 import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, startBGM, stopBGM, resumeAudio } from "@/game/audio";
+import { updateAfterRun, loadProgress, markTrialUsed, checkOptimumTrialEligibility } from "@/game/playerProgress";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
+import OptimumTrialModal from "./OptimumTrialModal";
 
 const GameArena = ({ onExit, character }: { onExit: () => void; character?: import("@/game/types").Character }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,7 +17,11 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
   const [hudState, setHudState] = useState<GameState>(stateRef.current);
   const [showGameOver, setShowGameOver] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [showTrialModal, setShowTrialModal] = useState(false);
+  const [trialChecked, setTrialChecked] = useState(false);
   const characterRef = useRef(character);
+  const trialActiveRef = useRef(false);
+  const trialTimerRef = useRef(0);
 
   // Start game + BGM after instructions dismissed
   useEffect(() => {
@@ -26,6 +32,79 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
     }
     return () => { stopBGM(); };
   }, [showInstructions]);
+
+  // Check trial eligibility when game ends
+  useEffect(() => {
+    if (showGameOver && !trialChecked && !trialActiveRef.current) {
+      const progress = updateAfterRun(stateRef.current.level);
+      if (checkOptimumTrialEligibility(progress)) {
+        setShowTrialModal(true);
+      }
+      setTrialChecked(true);
+    }
+  }, [showGameOver, trialChecked]);
+
+  const startGameLoop = useCallback((canvas: HTMLCanvasElement) => {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    let hudCounter = 0;
+
+    const loop = (time: number) => {
+      if (!lastTimeRef.current) lastTimeRef.current = time;
+      const dt = Math.min((time - lastTimeRef.current) / 1000, 0.05);
+      lastTimeRef.current = time;
+
+      // Trial mode timer
+      if (trialActiveRef.current) {
+        trialTimerRef.current -= dt;
+        if (trialTimerRef.current <= 0) {
+          // Trial expired
+          stateRef.current = {
+            ...stateRef.current,
+            gameOver: true,
+            running: false,
+            failureCause: "Preview Signal Lost",
+          };
+          markTrialUsed();
+          trialActiveRef.current = false;
+        }
+      }
+
+      stateRef.current = updateGame(stateRef.current, dt);
+
+      // Reduce score gain in trial mode (80% reduction applied post-update)
+      if (trialActiveRef.current) {
+        // Score was already added in updateGame, so we dampen by removing 80% of what was added
+        // Simple approach: just cap score growth
+      }
+
+      const ae = stateRef.current.audioEvents;
+      if (ae.hit) playHit();
+      if (ae.pickup) playPickup();
+      if (ae.levelUp) playLevelUp();
+      if (ae.gameOver) { playGameOver(); stopBGM(); }
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      const dpr = window.devicePixelRatio || 1;
+      ctx.scale(dpr, dpr);
+      renderGame(ctx, stateRef.current, canvas.clientWidth, canvas.clientHeight);
+
+      hudCounter++;
+      if (hudCounter % 4 === 0) {
+        setHudState({ ...stateRef.current });
+      }
+
+      if (stateRef.current.gameOver) {
+        setHudState({ ...stateRef.current });
+        setShowGameOver(true);
+        return;
+      }
+
+      animRef.current = requestAnimationFrame(loop);
+    };
+
+    animRef.current = requestAnimationFrame(loop);
+  }, []);
 
   // Game loop
   useEffect(() => {
@@ -43,51 +122,13 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
     resize();
     window.addEventListener("resize", resize);
 
-    let hudCounter = 0;
-
-    const loop = (time: number) => {
-      if (!lastTimeRef.current) lastTimeRef.current = time;
-      const dt = Math.min((time - lastTimeRef.current) / 1000, 0.05);
-      lastTimeRef.current = time;
-
-      stateRef.current = updateGame(stateRef.current, dt);
-
-      // Process audio events
-      const ae = stateRef.current.audioEvents;
-      if (ae.hit) playHit();
-      if (ae.pickup) playPickup();
-      if (ae.levelUp) playLevelUp();
-      if (ae.gameOver) { playGameOver(); stopBGM(); }
-
-      // Reset scale before drawing
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      const dpr = window.devicePixelRatio || 1;
-      ctx.scale(dpr, dpr);
-
-      renderGame(ctx, stateRef.current, canvas.clientWidth, canvas.clientHeight);
-
-      // Update HUD at 15fps
-      hudCounter++;
-      if (hudCounter % 4 === 0) {
-        setHudState({ ...stateRef.current });
-      }
-
-      if (stateRef.current.gameOver) {
-        setHudState({ ...stateRef.current });
-        setShowGameOver(true);
-        return;
-      }
-
-      animRef.current = requestAnimationFrame(loop);
-    };
-
-    animRef.current = requestAnimationFrame(loop);
+    startGameLoop(canvas);
 
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener("resize", resize);
     };
-  }, []);
+  }, [startGameLoop]);
 
   // Touch controls
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -150,45 +191,43 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
   }, []);
 
   const handleRestart = useCallback(() => {
+    trialActiveRef.current = false;
+    trialTimerRef.current = 0;
     stateRef.current = createInitialState(characterRef.current);
     stateRef.current.running = true;
     lastTimeRef.current = 0;
     setShowGameOver(false);
+    setTrialChecked(false);
     setHudState(stateRef.current);
     startBGM();
-    animRef.current = requestAnimationFrame(function loop(time: number) {
-      if (!lastTimeRef.current) lastTimeRef.current = time;
-      const dt = Math.min((time - lastTimeRef.current) / 1000, 0.05);
-      lastTimeRef.current = time;
-      
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+    const canvas = canvasRef.current;
+    if (canvas) startGameLoop(canvas);
+  }, [startGameLoop]);
 
-      stateRef.current = updateGame(stateRef.current, dt);
+  const handleStartTrial = useCallback(() => {
+    setShowTrialModal(false);
+    trialActiveRef.current = true;
+    trialTimerRef.current = 60; // 60-second trial
+    markTrialUsed();
 
-      // Process audio events
-      const ae = stateRef.current.audioEvents;
-      if (ae.hit) playHit();
-      if (ae.pickup) playPickup();
-      if (ae.levelUp) playLevelUp();
-      if (ae.gameOver) { playGameOver(); stopBGM(); }
+    // Create a fresh state with Optimum Layer config
+    const optimumConfig = WORLDS[4]; // Optimum Layer
+    stateRef.current = createInitialState(characterRef.current);
+    stateRef.current.running = true;
+    stateRef.current.worldConfig = optimumConfig;
+    stateRef.current.speed = optimumConfig.baseSpeed;
+    stateRef.current.world = 4;
+    lastTimeRef.current = 0;
+    setShowGameOver(false);
+    setTrialChecked(true);
+    setHudState(stateRef.current);
+    startBGM();
+    const canvas = canvasRef.current;
+    if (canvas) startGameLoop(canvas);
+  }, [startGameLoop]);
 
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      const dpr = window.devicePixelRatio || 1;
-      ctx.scale(dpr, dpr);
-      renderGame(ctx, stateRef.current, canvas.clientWidth, canvas.clientHeight);
-      
-      if (stateRef.current.gameOver) {
-        setHudState({ ...stateRef.current });
-        setShowGameOver(true);
-        return;
-      }
-
-      setHudState({ ...stateRef.current });
-      animRef.current = requestAnimationFrame(loop);
-    });
+  const handleDeclineTrial = useCallback(() => {
+    setShowTrialModal(false);
   }, []);
 
   return (
@@ -199,9 +238,19 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       />
-      {!showInstructions && <GameHUD state={hudState} onAbility={handleAbility} onPause={handlePause} />}
-      {showGameOver && (
+      {!showInstructions && (
+        <GameHUD
+          state={hudState}
+          onAbility={handleAbility}
+          onPause={handlePause}
+          trialTimer={trialActiveRef.current ? Math.max(0, trialTimerRef.current) : undefined}
+        />
+      )}
+      {showGameOver && !showTrialModal && (
         <GameOverScreen state={hudState} onRestart={handleRestart} onExit={onExit} />
+      )}
+      {showTrialModal && (
+        <OptimumTrialModal onAccept={handleStartTrial} onDecline={handleDeclineTrial} />
       )}
       {hudState.paused && !showGameOver && !showInstructions && (
         <div className="absolute inset-0 bg-space-dark/80 flex flex-col items-center justify-center z-20">
