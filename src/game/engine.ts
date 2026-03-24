@@ -60,6 +60,11 @@ export function updateGame(state: GameState, dt: number): GameState {
   s.audioEvents = { hit: false, pickup: false, levelUp: false, gameOver: false };
   s.frameCount++;
   s.distance += s.speed * dt;
+
+  // Update floating texts
+  s.floatingTexts = s.floatingTexts
+    .map(ft => ({ ...ft, life: ft.life - dt, y: ft.y - dt * 0.08 }))
+    .filter(ft => ft.life > 0);
   
   // Score from survival
   s.score += s.speed * dt * s.comboMultiplier * 0.5;
@@ -97,9 +102,16 @@ export function updateGame(state: GameState, dt: number): GameState {
   } else {
     s.streakTimer = 0;
   }
-  // Stability zones (FlexNode Dominion)
+  // Stability zones (FlexNode Dominion) — counts as FlexNode deployment
   if (wc.stabilityZones && currentLaneState === 'fast') {
     drainRate *= 0.5;
+    // Count once every ~2 seconds while in stability zone
+    if (s.frameCount % 120 === 0) {
+      s.flexNodesDeployed++;
+      s.floatingTexts = [...s.floatingTexts, {
+        text: 'FlexNode Stabilized +1', x: 0.5, y: 0.6, life: 1.2, color: '#00ffcc',
+      }];
+    }
   }
   s.latencyBudget = Math.max(0, s.latencyBudget - drainRate * dt);
 
@@ -137,12 +149,10 @@ export function updateGame(state: GameState, dt: number): GameState {
   }
 
   // Update lane states — stage-specific congestion/disable chance
-  s.lanes = s.lanes.map((lane) => {
+  s.lanes = s.lanes.map((lane, laneIdx) => {
     const l = { ...lane };
-    // Congested lane chance per stage
+    const prevState = l.state;
     if (Math.random() < (wc.congestedLaneChance * bossMulti)) {
-      const states: LaneState[] = ['fast', 'congested', 'relay'];
-      // Weighted: more congested in Stage 1, more relay in Stage 3
       const roll = Math.random();
       if (wc.laneDisableChance > 0 && Math.random() < wc.laneDisableChance * 10) {
         l.state = 'collapsing';
@@ -157,7 +167,23 @@ export function updateGame(state: GameState, dt: number): GameState {
     }
     if (l.state === 'collapsing') {
       l.timer -= dt;
-      if (l.timer <= 0) l.state = 'fast';
+      if (l.timer <= 0) {
+        l.state = 'fast';
+        // Lane recovered from collapse = FlexNode stabilization
+        if (prevState === 'collapsing') {
+          s.flexNodesDeployed++;
+          s.floatingTexts = [...s.floatingTexts, {
+            text: 'FlexNode Stabilized +1', x: 0.2 + laneIdx * 0.3, y: 0.55, life: 1.2, color: '#00ffcc',
+          }];
+        }
+      }
+    }
+    // Congested lane auto-stabilized to fast = FlexNode event
+    if (prevState === 'congested' && l.state === 'fast') {
+      s.flexNodesDeployed++;
+      s.floatingTexts = [...s.floatingTexts, {
+        text: 'FlexNode Stabilized +1', x: 0.2 + laneIdx * 0.3, y: 0.55, life: 1.2, color: '#00ffcc',
+      }];
     }
     return l;
   }) as [typeof s.lanes[0], typeof s.lanes[0], typeof s.lanes[0]];
