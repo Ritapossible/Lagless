@@ -1,28 +1,36 @@
-import { Target, Trophy, ShoppingBag, Users, Wallet } from "lucide-react";
+import { Target, Trophy, ShoppingBag, User, Wallet } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const navItems = [
-  { icon: Target, label: "Missions" },
-  { icon: Trophy, label: "Leaderboard" },
-  { icon: ShoppingBag, label: "Shop" },
-  { icon: Users, label: "Characters" },
-  { icon: Wallet, label: "Wallet" },
+  { icon: Target, label: "Missions", path: "/" },
+  { icon: Trophy, label: "Leaderboard", path: "/" },
+  { icon: ShoppingBag, label: "Shop", path: "/" },
+  { icon: User, label: "Profile", path: "/profile" },
+  { icon: Wallet, label: "Wallet", path: "/" },
 ];
 
 const BottomNav = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-primary/20 bg-space-dark/90 backdrop-blur-md">
       <div className="flex items-center justify-around px-2 py-2">
-        {navItems.map(({ icon: Icon, label }) => (
-          <button
-            key={label}
-            className="group flex flex-col items-center gap-1 px-3 py-1 transition-transform duration-200 active:scale-95"
-          >
-            <Icon className="w-5 h-5 text-primary/70 group-hover:text-primary transition-colors" />
-            <span className="font-display text-[10px] font-medium tracking-wider uppercase text-muted-foreground group-hover:text-foreground transition-colors">
-              {label}
-            </span>
-          </button>
-        ))}
+        {navItems.map(({ icon: Icon, label, path }) => {
+          const isActive = location.pathname === path && path !== "/";
+          return (
+            <button
+              key={label}
+              onClick={() => navigate(path)}
+              className={`group flex flex-col items-center gap-1 px-3 py-1 transition-transform duration-200 active:scale-95`}
+            >
+              <Icon className={`w-5 h-5 transition-colors ${isActive ? "text-primary" : "text-primary/70 group-hover:text-primary"}`} />
+              <span className={`font-display text-[10px] font-medium tracking-wider uppercase transition-colors ${isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}>
+                {label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </nav>
   );

@@ -36,7 +36,7 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
   // Check trial eligibility when game ends
   useEffect(() => {
     if (showGameOver && !trialChecked && !trialActiveRef.current) {
-      const progress = updateAfterRun(stateRef.current.level);
+      const progress = updateAfterRun(stateRef.current.level, stateRef.current.score, Math.max(stateRef.current.bestCombo, stateRef.current.comboMultiplier));
       if (checkOptimumTrialEligibility(progress)) {
         setShowTrialModal(true);
       }
@@ -281,47 +281,61 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
         </div>
       )}
       {showInstructions && (
-        <div className="absolute inset-0 bg-space-dark/95 backdrop-blur-sm flex flex-col items-center justify-center z-30 px-6 animate-fade-in">
-          <h2 className="font-display text-2xl font-bold neon-glow mb-6">How to Play</h2>
-          <div className="max-w-sm w-full space-y-3 text-sm text-muted-foreground">
+        <div className="absolute inset-0 bg-space-dark/95 backdrop-blur-sm flex flex-col items-center justify-center z-30 px-6 animate-fade-in overflow-y-auto">
+          <h2 className="font-display text-2xl font-bold neon-glow mb-4">How to Play</h2>
+          <div className="max-w-sm w-full space-y-2.5 text-sm text-muted-foreground">
             <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
-              <span className="text-xl">👆</span>
+              <span className="text-lg">👆</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">Swipe Left / Right</p>
-                <p className="text-xs">Switch between 3 lanes to avoid obstacles and find optimal routes.</p>
+                <p className="text-xs">Switch between 3 network lanes. Blue lanes are fast — stay on them for combos.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
-              <span className="text-xl">⬆️</span>
+              <span className="text-lg">⬆️</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">Tap / Swipe Up</p>
-                <p className="text-xs">Jump over obstacles. Keyboard: Space or W.</p>
+                <p className="text-xs">Jump over obstacles like spam packets and data storms. Keyboard: Space or W.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
-              <span className="text-xl">⚡</span>
+              <span className="text-lg">⚡</span>
               <div>
-                <p className="text-foreground font-semibold text-sm">Ability Button</p>
-                <p className="text-xs">Activate your character's unique skill. Keyboard: E or Shift.</p>
+                <p className="text-foreground font-semibold text-sm">Ability (Bottom-Right)</p>
+                <p className="text-xs">Activate your character's unique skill. Each has a cooldown — use wisely! Keyboard: E or Shift.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-destructive/5 border border-destructive/20 rounded-xl p-3">
+              <span className="text-lg">🔴</span>
+              <div>
+                <p className="text-foreground font-semibold text-sm">Avoid Red Lanes</p>
+                <p className="text-xs">Congested (red) lanes drain your latency timer fast. Collapsing lanes deal damage.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-accent/5 border border-accent/20 rounded-xl p-3">
-              <span className="text-xl">💡</span>
+              <span className="text-lg">💎</span>
               <div>
-                <p className="text-foreground font-semibold text-sm">Tips</p>
-                <p className="text-xs">Stay on blue lanes for speed. Collect relay diamonds to refill your latency timer. Avoid red congested lanes!</p>
+                <p className="text-foreground font-semibold text-sm">Collect Relay Pickups</p>
+                <p className="text-xs">Diamond pickups refill your latency budget and boost score. Green pickups restore health.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
+              <span className="text-lg">🌐</span>
+              <div>
+                <p className="text-foreground font-semibold text-sm">Stages & Progression</p>
+                <p className="text-xs">Progress through 5 stages — from Congestion Zone to the ultra-fast Optimum Layer at Level 40.</p>
               </div>
             </div>
           </div>
           <button
             onClick={() => setShowInstructions(false)}
-            className="mt-8 px-10 py-3 font-display text-lg tracking-widest uppercase border-2 border-primary rounded-xl bg-primary/10 neon-box active:scale-95 transition-transform"
+            className="mt-6 px-10 py-3 font-display text-lg tracking-widest uppercase border-2 border-primary rounded-xl bg-primary/10 neon-box active:scale-95 transition-transform"
           >
             Start
           </button>
           <button
             onClick={() => setShowInstructions(false)}
-            className="mt-3 px-6 py-2 font-display text-xs tracking-widest uppercase text-muted-foreground active:scale-95 transition-transform"
+            className="mt-2 px-6 py-2 font-display text-xs tracking-widest uppercase text-muted-foreground active:scale-95 transition-transform"
           >
             Skip
           </button>
