@@ -221,7 +221,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
   const handleRestart = useCallback(() => {
     trialActiveRef.current = false;
     trialTimerRef.current = 0;
-    stateRef.current = createInitialState(characterRef.current);
+    stateRef.current = createInitialState(characterRef.current, startLevel);
     stateRef.current.running = true;
     lastTimeRef.current = 0;
     setShowGameOver(false);
