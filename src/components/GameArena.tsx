@@ -3,14 +3,14 @@ import { createInitialState, updateGame, switchLane, jump, activateAbility } fro
 import { renderGame } from "@/game/renderer";
 import { GameState, WORLDS } from "@/game/types";
 import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, startBGM, stopBGM, resumeAudio } from "@/game/audio";
-import { updateAfterRun, loadProgress, markTrialUsed, checkOptimumTrialEligibility } from "@/game/playerProgress";
+import { updateAfterRun, loadProgress, markTrialUsed, checkOptimumTrialEligibility, updateResumeNode, calculateResumeNode } from "@/game/playerProgress";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 import OptimumTrialModal from "./OptimumTrialModal";
 
-const GameArena = ({ onExit, character }: { onExit: () => void; character?: import("@/game/types").Character }) => {
+const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; character?: import("@/game/types").Character; startLevel?: number }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const stateRef = useRef<GameState>(createInitialState(character));
+  const stateRef = useRef<GameState>(createInitialState(character, startLevel));
   const animRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
