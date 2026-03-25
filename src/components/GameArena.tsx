@@ -58,25 +58,36 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
       if (trialActiveRef.current) {
         trialTimerRef.current -= dt;
         if (trialTimerRef.current <= 0) {
-          // Trial expired
+          // Trial expired — show "Trial Ended" banner then game over
           stateRef.current = {
             ...stateRef.current,
             gameOver: true,
             running: false,
             failureCause: "Preview Signal Lost",
+            levelUpDisplay: 2.5,
+            levelUpName: "⏱ TRIAL ENDED",
+            audioEvents: { ...stateRef.current.audioEvents, gameOver: true },
           };
           markTrialUsed();
           trialActiveRef.current = false;
+          // Stop BGM immediately
+          playGameOver();
+          stopBGM();
+          // Render final frame, then delay showing game over screen
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          const dpr2 = window.devicePixelRatio || 1;
+          ctx.scale(dpr2, dpr2);
+          renderGame(ctx, stateRef.current, canvas.clientWidth, canvas.clientHeight);
+          setHudState({ ...stateRef.current });
+          // Show game over after a short delay so player sees the banner
+          setTimeout(() => {
+            setShowGameOver(true);
+          }, 2000);
+          return; // Stop the loop — don't continue to updateGame
         }
       }
 
       stateRef.current = updateGame(stateRef.current, dt);
-
-      // Reduce score gain in trial mode (80% reduction applied post-update)
-      if (trialActiveRef.current) {
-        // Score was already added in updateGame, so we dampen by removing 80% of what was added
-        // Simple approach: just cap score growth
-      }
 
       const ae = stateRef.current.audioEvents;
       if (ae.hit) playHit();
