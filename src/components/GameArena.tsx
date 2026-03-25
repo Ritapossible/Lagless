@@ -3,14 +3,14 @@ import { createInitialState, updateGame, switchLane, jump, activateAbility } fro
 import { renderGame } from "@/game/renderer";
 import { GameState, WORLDS } from "@/game/types";
 import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, startBGM, stopBGM, resumeAudio } from "@/game/audio";
-import { updateAfterRun, loadProgress, markTrialUsed, checkOptimumTrialEligibility } from "@/game/playerProgress";
+import { updateAfterRun, loadProgress, markTrialUsed, checkOptimumTrialEligibility, updateResumeNode, calculateResumeNode } from "@/game/playerProgress";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 import OptimumTrialModal from "./OptimumTrialModal";
 
-const GameArena = ({ onExit, character }: { onExit: () => void; character?: import("@/game/types").Character }) => {
+const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; character?: import("@/game/types").Character; startLevel?: number }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const stateRef = useRef<GameState>(createInitialState(character));
+  const stateRef = useRef<GameState>(createInitialState(character, startLevel));
   const animRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
@@ -92,7 +92,24 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
       const ae = stateRef.current.audioEvents;
       if (ae.hit) playHit();
       if (ae.pickup) playPickup();
-      if (ae.levelUp) playLevelUp();
+      if (ae.levelUp) {
+        playLevelUp();
+        // Track resume node on level-up
+        const lvl = stateRef.current.level;
+        const prevProgress = loadProgress();
+        const prevResume = prevProgress.lastResumeNodeLevel;
+        const updated = updateResumeNode(lvl);
+        if (updated.lastResumeNodeLevel > prevResume) {
+          // Show resume node unlock as floating text
+          stateRef.current = {
+            ...stateRef.current,
+            floatingTexts: [
+              ...stateRef.current.floatingTexts,
+              { text: `⚡ Resume Node L${updated.lastResumeNodeLevel}`, x: 0.5, y: 0.35, life: 2.5, color: '#00ff88' },
+            ],
+          };
+        }
+      }
       if (ae.gameOver) { playGameOver(); stopBGM(); }
 
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -204,7 +221,7 @@ const GameArena = ({ onExit, character }: { onExit: () => void; character?: impo
   const handleRestart = useCallback(() => {
     trialActiveRef.current = false;
     trialTimerRef.current = 0;
-    stateRef.current = createInitialState(characterRef.current);
+    stateRef.current = createInitialState(characterRef.current, startLevel);
     stateRef.current.running = true;
     lastTimeRef.current = 0;
     setShowGameOver(false);

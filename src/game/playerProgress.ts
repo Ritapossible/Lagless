@@ -8,6 +8,7 @@ export interface PlayerProgress {
   bestCombo: number;
   trialUsed: boolean;
   optimumLayerUnlocked: boolean;
+  lastResumeNodeLevel: number;
 }
 
 const STORAGE_KEY = 'latency-escape-progress';
@@ -20,6 +21,7 @@ const DEFAULT_PROGRESS: PlayerProgress = {
   bestCombo: 0,
   trialUsed: false,
   optimumLayerUnlocked: false,
+  lastResumeNodeLevel: 0,
 };
 
 export function loadProgress(): PlayerProgress {
@@ -67,4 +69,34 @@ export function checkOptimumTrialEligibility(progress: PlayerProgress): boolean 
   // Condition 2: failed 5 total runs
   if (progress.totalRuns >= 5) return true;
   return false;
+}
+
+// Resume Node calculation
+export function calculateResumeNode(level: number): number {
+  if (level >= 40) return level; // Optimum Layer: retry from failed level
+  if (level >= 20) {
+    // Every 2 levels: 20, 22, 24, ...
+    return Math.floor(level / 2) * 2;
+  }
+  if (level >= 10) {
+    // Resume nodes at 12, 15, 18
+    const resumeNodes = [12, 15, 18];
+    let best = 0;
+    for (const node of resumeNodes) {
+      if (level >= node) best = node;
+    }
+    return best;
+  }
+  return 0; // Levels 1-9: no resume
+}
+
+export function updateResumeNode(level: number): PlayerProgress {
+  const p = loadProgress();
+  p.highestLevel = Math.max(p.highestLevel, level);
+  const resumeNode = calculateResumeNode(level);
+  if (resumeNode > p.lastResumeNodeLevel) {
+    p.lastResumeNodeLevel = resumeNode;
+  }
+  saveProgress(p);
+  return p;
 }

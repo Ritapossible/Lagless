@@ -2,8 +2,16 @@ import { GameState, Obstacle, Pickup, WORLDS, CHARACTERS, LaneState } from './ty
 
 const BOSS_LEVELS = [25, 39];
 
-export function createInitialState(character?: import('./types').Character): GameState {
-  const worldConfig = WORLDS[0];
+export function createInitialState(character?: import('./types').Character, startLevel?: number): GameState {
+  const level = startLevel || 1;
+  // Determine world from level
+  let worldIdx = 0;
+  if (level >= 40) worldIdx = 4;
+  else if (level >= 33) worldIdx = 3;
+  else if (level >= 26) worldIdx = 2;
+  else if (level >= 13) worldIdx = 1;
+  const worldConfig = WORLDS[worldIdx];
+  
   return {
     running: false,
     paused: false,
@@ -13,8 +21,8 @@ export function createInitialState(character?: import('./types').Character): Gam
     playerY: 0,
     playerVelocityY: 0,
     isJumping: false,
-    speed: worldConfig.baseSpeed,
-    distance: 0,
+    speed: worldConfig.baseSpeed + (level - 1) * 0.3,
+    distance: (level - 1) * 500,
     score: 0,
     health: 50,
     maxHealth: 50,
@@ -22,8 +30,8 @@ export function createInitialState(character?: import('./types').Character): Gam
     maxLatency: 100,
     comboCount: 0,
     comboMultiplier: 1,
-    level: 1,
-    world: 0,
+    level,
+    world: worldIdx,
     obstacles: [],
     pickups: [],
     lanes: [
