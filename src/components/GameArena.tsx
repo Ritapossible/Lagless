@@ -238,13 +238,9 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
     trialTimerRef.current = 60; // 60-second trial
     markTrialUsed();
 
-    // Create a fresh state with Optimum Layer config
-    const optimumConfig = WORLDS[4]; // Optimum Layer
-    stateRef.current = createInitialState(characterRef.current);
+    // Create a fresh state starting at Level 40 (Optimum Layer)
+    stateRef.current = createInitialState(characterRef.current, 40);
     stateRef.current.running = true;
-    stateRef.current.worldConfig = optimumConfig;
-    stateRef.current.speed = optimumConfig.baseSpeed;
-    stateRef.current.world = 4;
     lastTimeRef.current = 0;
     setShowGameOver(false);
     setTrialChecked(true);
