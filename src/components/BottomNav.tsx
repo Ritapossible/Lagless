@@ -1,4 +1,4 @@
-import { Target, Trophy, ShoppingBag, User, Wallet } from "lucide-react";
+import { Target, Trophy, ShoppingBag, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const navItems = [
@@ -6,7 +6,6 @@ const navItems = [
   { icon: Trophy, label: "Leaderboard", path: "/" },
   { icon: ShoppingBag, label: "Shop", path: "/" },
   { icon: User, label: "Profile", path: "/profile" },
-  { icon: Wallet, label: "Wallet", path: "/" },
 ];
 
 const BottomNav = () => {

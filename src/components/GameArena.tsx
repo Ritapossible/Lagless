@@ -298,55 +298,64 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
         </div>
       )}
       {showInstructions && (
-        <div className="absolute inset-0 bg-space-dark/95 backdrop-blur-sm flex flex-col items-center justify-center z-30 px-6 animate-fade-in overflow-y-auto">
-          <h2 className="font-display text-2xl font-bold neon-glow mb-4">How to Play</h2>
-          <div className="max-w-sm w-full space-y-2.5 text-sm text-muted-foreground">
+        <div className="absolute inset-0 bg-space-dark/95 backdrop-blur-sm flex flex-col items-center z-30 px-4 animate-fade-in overflow-y-auto py-10">
+          <h2 className="font-display text-2xl font-bold neon-glow mb-1">How to Play</h2>
+          <p className="text-muted-foreground text-xs mb-4">Route packets through the network</p>
+          <div className="max-w-sm w-full space-y-2 text-sm text-muted-foreground">
             <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
               <span className="text-lg">👆</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">Swipe Left / Right</p>
-                <p className="text-xs">Switch between 3 network lanes. Blue lanes are fast — stay on them for combos.</p>
+                <p className="text-xs">Switch between 3 network lanes. Blue lanes boost combos.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
               <span className="text-lg">⬆️</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">Tap / Swipe Up</p>
-                <p className="text-xs">Jump over obstacles like spam packets and data storms. Keyboard: Space or W.</p>
+                <p className="text-xs">Jump over spam packets and data storms.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
               <span className="text-lg">⚡</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">Ability (Bottom-Right)</p>
-                <p className="text-xs">Activate your character's unique skill. Each has a cooldown — use wisely! Keyboard: E or Shift.</p>
+                <p className="text-xs">Activate your character's unique skill with cooldown.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-destructive/5 border border-destructive/20 rounded-xl p-3">
               <span className="text-lg">🔴</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">Avoid Red Lanes</p>
-                <p className="text-xs">Congested (red) lanes drain your latency timer fast. Collapsing lanes deal damage.</p>
+                <p className="text-xs">Congested lanes drain latency. Collapsing lanes deal damage.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-accent/5 border border-accent/20 rounded-xl p-3">
               <span className="text-lg">💎</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">Collect Relay Pickups</p>
-                <p className="text-xs">Diamond pickups refill your latency budget and boost score. Green pickups restore health.</p>
+                <p className="text-xs">Diamonds refill latency. Green pickups restore health.</p>
+              </div>
+            </div>
+            {/* Progression retention info */}
+            <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
+              <span className="text-lg">📡</span>
+              <div>
+                <p className="text-foreground font-semibold text-sm">Resume Nodes</p>
+                <p className="text-xs">L1–9: No saves. L10–19: Checkpoint every 3 levels. L20–39: Every 2 levels. L40+: Retry from failed level.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
               <span className="text-lg">🌐</span>
               <div>
-                <p className="text-foreground font-semibold text-sm">Stages & Progression</p>
-                <p className="text-xs">Progress through 5 stages — from Congestion Zone to the ultra-fast Optimum Layer at Level 40.</p>
+                <p className="text-foreground font-semibold text-sm">5 Network Stages</p>
+                <p className="text-xs">Congestion Zone → Packet Storm → Dark Routing → FlexNode Dominion → Optimum Layer (L40+).</p>
               </div>
             </div>
           </div>
           <button
             onClick={() => setShowInstructions(false)}
-            className="mt-6 px-10 py-3 font-display text-lg tracking-widest uppercase border-2 border-primary rounded-xl bg-primary/10 neon-box active:scale-95 transition-transform"
+            className="mt-5 px-10 py-3 font-display text-lg tracking-widest uppercase border-2 border-primary rounded-xl bg-primary/10 neon-box active:scale-95 transition-transform"
           >
             Start
           </button>
