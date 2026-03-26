@@ -345,7 +345,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
               <span className="text-lg">🌐</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">5 Network Stages</p>
-                <p className="text-xs">Congestion Zone → Packet Storm → Dark Routing → FlexNode Dominion → Optimum Layer (L40+).</p>
+                <p className="text-xs">Congestion Zone → Fragmented Grid → Mesh Awakening → FlexNode Dominion → Optimum Layer (L40+).</p>
               </div>
             </div>
           </div>
