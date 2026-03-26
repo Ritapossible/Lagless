@@ -265,6 +265,18 @@ export function updateGame(state: GameState, dt: number): GameState {
   const newLevel = Math.floor(s.distance / 500) + 1;
   if (newLevel > s.level) {
     s.level = newLevel;
+
+    // Victory at level 50
+    if (s.level >= 50) {
+      s.gameOver = true;
+      s.running = false;
+      s.bestCombo = Math.max(s.bestCombo, s.comboMultiplier);
+      s.failureCause = '__VICTORY__';
+      s.levelUpDisplay = 0;
+      s.audioEvents.levelUp = true;
+      return s;
+    }
+
     // World mapping: 1-12=W0, 13-25=W1, 26-32=W2, 33-39=W3, 40+=W4
     let newWorld = 0;
     if (s.level >= 40) newWorld = 4;
