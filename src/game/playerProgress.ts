@@ -47,6 +47,11 @@ export function updateAfterRun(level: number, score?: number, combo?: number): P
   if (score !== undefined) p.highScore = Math.max(p.highScore, score);
   if (combo !== undefined) p.bestCombo = Math.max(p.bestCombo, combo);
   if (level >= 40) p.optimumLayerUnlocked = true;
+  // Also update resume node
+  const resumeNode = calculateResumeNode(level);
+  if (resumeNode > p.lastResumeNodeLevel) {
+    p.lastResumeNodeLevel = resumeNode;
+  }
   saveProgress(p);
   return p;
 }
