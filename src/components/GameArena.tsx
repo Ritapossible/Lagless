@@ -94,20 +94,21 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
       if (ae.pickup) playPickup();
       if (ae.levelUp) {
         playLevelUp();
-        // Track resume node on level-up
-        const lvl = stateRef.current.level;
-        const prevProgress = loadProgress();
-        const prevResume = prevProgress.lastResumeNodeLevel;
-        const updated = updateResumeNode(lvl);
-        if (updated.lastResumeNodeLevel > prevResume) {
-          // Show resume node unlock as floating text
-          stateRef.current = {
-            ...stateRef.current,
-            floatingTexts: [
-              ...stateRef.current.floatingTexts,
-              { text: `⚡ Resume Node L${updated.lastResumeNodeLevel}`, x: 0.5, y: 0.35, life: 2.5, color: '#00ff88' },
-            ],
-          };
+        // Track resume node on level-up (skip during trial mode)
+        if (!trialActiveRef.current) {
+          const lvl = stateRef.current.level;
+          const prevProgress = loadProgress();
+          const prevResume = prevProgress.lastResumeNodeLevel;
+          const updated = updateResumeNode(lvl);
+          if (updated.lastResumeNodeLevel > prevResume) {
+            stateRef.current = {
+              ...stateRef.current,
+              floatingTexts: [
+                ...stateRef.current.floatingTexts,
+                { text: `⚡ Resume Node L${updated.lastResumeNodeLevel}`, x: 0.5, y: 0.35, life: 2.5, color: '#00ff88' },
+              ],
+            };
+          }
         }
       }
       if (ae.gameOver) { playGameOver(); stopBGM(); }
