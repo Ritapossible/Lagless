@@ -21,6 +21,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
   const [trialChecked, setTrialChecked] = useState(false);
   const characterRef = useRef(character);
   const trialActiveRef = useRef(false);
+  const trialRunRef = useRef(false); // tracks if current/last run was a trial
   const trialTimerRef = useRef(0);
 
   // Start game + BGM after instructions dismissed
