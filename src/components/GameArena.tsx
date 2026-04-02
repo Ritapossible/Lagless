@@ -21,6 +21,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
   const [trialChecked, setTrialChecked] = useState(false);
   const characterRef = useRef(character);
   const trialActiveRef = useRef(false);
+  const trialRunRef = useRef(false); // tracks if current/last run was a trial
   const trialTimerRef = useRef(0);
 
   // Start game + BGM after instructions dismissed
@@ -35,11 +36,14 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
 
   // Check trial eligibility when game ends
   useEffect(() => {
-    if (showGameOver && !trialChecked && !trialActiveRef.current) {
+    if (showGameOver && !trialChecked && !trialRunRef.current) {
+      // Only track real run stats (not trial runs) for progress
       const progress = updateAfterRun(stateRef.current.level, stateRef.current.score, Math.max(stateRef.current.bestCombo, stateRef.current.comboMultiplier));
       if (checkOptimumTrialEligibility(progress)) {
         setShowTrialModal(true);
       }
+      setTrialChecked(true);
+    } else if (showGameOver && !trialChecked && trialRunRef.current) {
       setTrialChecked(true);
     }
   }, [showGameOver, trialChecked]);
@@ -94,20 +98,21 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
       if (ae.pickup) playPickup();
       if (ae.levelUp) {
         playLevelUp();
-        // Track resume node on level-up
-        const lvl = stateRef.current.level;
-        const prevProgress = loadProgress();
-        const prevResume = prevProgress.lastResumeNodeLevel;
-        const updated = updateResumeNode(lvl);
-        if (updated.lastResumeNodeLevel > prevResume) {
-          // Show resume node unlock as floating text
-          stateRef.current = {
-            ...stateRef.current,
-            floatingTexts: [
-              ...stateRef.current.floatingTexts,
-              { text: `⚡ Resume Node L${updated.lastResumeNodeLevel}`, x: 0.5, y: 0.35, life: 2.5, color: '#00ff88' },
-            ],
-          };
+        // Track resume node on level-up (skip during trial mode)
+        if (!trialActiveRef.current) {
+          const lvl = stateRef.current.level;
+          const prevProgress = loadProgress();
+          const prevResume = prevProgress.lastResumeNodeLevel;
+          const updated = updateResumeNode(lvl);
+          if (updated.lastResumeNodeLevel > prevResume) {
+            stateRef.current = {
+              ...stateRef.current,
+              floatingTexts: [
+                ...stateRef.current.floatingTexts,
+                { text: `⚡ Resume Node L${updated.lastResumeNodeLevel}`, x: 0.5, y: 0.35, life: 2.5, color: '#00ff88' },
+              ],
+            };
+          }
         }
       }
       if (ae.gameOver) { playGameOver(); stopBGM(); }
@@ -220,6 +225,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
 
   const handleRestart = useCallback(() => {
     trialActiveRef.current = false;
+    trialRunRef.current = false;
     trialTimerRef.current = 0;
     stateRef.current = createInitialState(characterRef.current, startLevel);
     stateRef.current.running = true;
@@ -235,6 +241,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
   const handleStartTrial = useCallback(() => {
     setShowTrialModal(false);
     trialActiveRef.current = true;
+    trialRunRef.current = true;
     trialTimerRef.current = 60; // 60-second trial
 
     // Create a fresh state starting at Level 40 (Optimum Layer)
