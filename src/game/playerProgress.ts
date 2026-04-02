@@ -59,6 +59,7 @@ export function updateAfterRun(level: number, score?: number, combo?: number): P
 export function markTrialUsed(): void {
   const p = loadProgress();
   p.trialUsed = true;
+  p.trialsUsed = (p.trialsUsed || 0) + 1;
   saveProgress(p);
 }
 
