@@ -241,6 +241,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
   const handleStartTrial = useCallback(() => {
     setShowTrialModal(false);
     trialActiveRef.current = true;
+    trialRunRef.current = true;
     trialTimerRef.current = 60; // 60-second trial
 
     // Create a fresh state starting at Level 40 (Optimum Layer)
