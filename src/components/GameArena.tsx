@@ -3,7 +3,7 @@ import { createInitialState, updateGame, switchLane, jump, activateAbility } fro
 import { renderGame } from "@/game/renderer";
 import { GameState, WORLDS } from "@/game/types";
 import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, startBGM, stopBGM, resumeAudio } from "@/game/audio";
-import { updateAfterRun, loadProgress, markTrialUsed, checkOptimumTrialEligibility, updateResumeNode, calculateResumeNode } from "@/game/playerProgress";
+import { updateAfterRun, loadProgress, markTrialConditionUsed, checkOptimumTrialEligibility, updateResumeNode, calculateResumeNode } from "@/game/playerProgress";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 import OptimumTrialModal from "./OptimumTrialModal";
@@ -68,7 +68,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
             levelUpName: "⏱ TRIAL ENDED",
             audioEvents: { ...stateRef.current.audioEvents, gameOver: true },
           };
-          markTrialUsed();
+          markTrialConditionUsed(loadProgress());
           trialActiveRef.current = false;
           // Stop BGM immediately
           playGameOver();
