@@ -7,6 +7,7 @@ export interface PlayerProgress {
   highScore: number;
   bestCombo: number;
   trialUsed: boolean;
+  trialsUsed: number;
   optimumLayerUnlocked: boolean;
   lastResumeNodeLevel: number;
 }
