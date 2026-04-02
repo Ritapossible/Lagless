@@ -8,6 +8,11 @@ export interface PlayerProgress {
   bestCombo: number;
   trialUsed: boolean;
   trialsUsed: number;
+  trialConditionUsed: {
+    failed5: boolean;
+    reachedLv10: boolean;
+    dailyMission: boolean;
+  };
   optimumLayerUnlocked: boolean;
   lastResumeNodeLevel: number;
 }
