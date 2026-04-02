@@ -113,7 +113,7 @@ export function calculateResumeNode(level: number): number {
   }
   if (level >= 10) {
     // Resume nodes at 12, 15, 18
-    const resumeNodes = [12, 15, 18];
+    const resumeNodes = [10, 12, 15, 18];
     let best = 0;
     for (const node of resumeNodes) {
       if (level >= node) best = node;
