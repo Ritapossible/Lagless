@@ -27,6 +27,11 @@ const DEFAULT_PROGRESS: PlayerProgress = {
   bestCombo: 0,
   trialUsed: false,
   trialsUsed: 0,
+  trialConditionUsed: {
+    failed5: false,
+    reachedLv10: false,
+    dailyMission: false,
+  },
   optimumLayerUnlocked: false,
   lastResumeNodeLevel: 0,
 };
