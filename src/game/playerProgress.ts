@@ -21,6 +21,7 @@ const DEFAULT_PROGRESS: PlayerProgress = {
   highScore: 0,
   bestCombo: 0,
   trialUsed: false,
+  trialsUsed: 0,
   optimumLayerUnlocked: false,
   lastResumeNodeLevel: 0,
 };
