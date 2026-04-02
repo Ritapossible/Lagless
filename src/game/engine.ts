@@ -210,7 +210,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   s.obstacles = s.obstacles.map(o => {
     if (!o.hit && o.lane === s.currentLane && Math.abs(o.z - playerZ) < 40 && s.playerY < 2) {
       if (!s.abilityActive || s.character.ability !== 'speed_warp') {
-        const dmg = Math.round(10 * wc.mistakePenalty);
+        const dmg = Math.min(10, Math.round(10 * wc.mistakePenalty));
         s.health = Math.max(0, s.health - dmg);
         s.comboCount = 0;
         s.comboMultiplier = 1;

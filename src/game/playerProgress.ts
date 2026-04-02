@@ -7,6 +7,7 @@ export interface PlayerProgress {
   highScore: number;
   bestCombo: number;
   trialUsed: boolean;
+  trialsUsed: number;
   optimumLayerUnlocked: boolean;
   lastResumeNodeLevel: number;
 }
@@ -20,6 +21,7 @@ const DEFAULT_PROGRESS: PlayerProgress = {
   highScore: 0,
   bestCombo: 0,
   trialUsed: false,
+  trialsUsed: 0,
   optimumLayerUnlocked: false,
   lastResumeNodeLevel: 0,
 };
@@ -45,6 +47,11 @@ export function updateAfterRun(level: number, score?: number, combo?: number): P
   if (score !== undefined) p.highScore = Math.max(p.highScore, score);
   if (combo !== undefined) p.bestCombo = Math.max(p.bestCombo, combo);
   if (level >= 40) p.optimumLayerUnlocked = true;
+  // Also update resume node
+  const resumeNode = calculateResumeNode(level);
+  if (resumeNode > p.lastResumeNodeLevel) {
+    p.lastResumeNodeLevel = resumeNode;
+  }
   saveProgress(p);
   return p;
 }
@@ -52,6 +59,7 @@ export function updateAfterRun(level: number, score?: number, combo?: number): P
 export function markTrialUsed(): void {
   const p = loadProgress();
   p.trialUsed = true;
+  p.trialsUsed = (p.trialsUsed || 0) + 1;
   saveProgress(p);
 }
 
@@ -62,13 +70,15 @@ export function setDiscordUsername(username: string): void {
 }
 
 export function checkOptimumTrialEligibility(progress: PlayerProgress): boolean {
-  if (progress.trialUsed) return false;
   if (progress.optimumLayerUnlocked) return false;
+  // Count how many conditions the player has met
+  let conditionsMet = 0;
   // Condition 1: reached level 10
-  if (progress.highestLevel >= 10) return true;
+  if (progress.highestLevel >= 10) conditionsMet++;
   // Condition 2: failed 5 total runs
-  if (progress.totalRuns >= 5) return true;
-  return false;
+  if (progress.totalRuns >= 5) conditionsMet++;
+  // Allow one trial per condition met
+  return conditionsMet > progress.trialsUsed;
 }
 
 // Resume Node calculation
