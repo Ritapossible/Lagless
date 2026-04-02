@@ -36,12 +36,14 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
 
   // Check trial eligibility when game ends
   useEffect(() => {
-    if (showGameOver && !trialChecked && !trialActiveRef.current) {
+    if (showGameOver && !trialChecked && !trialRunRef.current) {
       // Only track real run stats (not trial runs) for progress
       const progress = updateAfterRun(stateRef.current.level, stateRef.current.score, Math.max(stateRef.current.bestCombo, stateRef.current.comboMultiplier));
       if (checkOptimumTrialEligibility(progress)) {
         setShowTrialModal(true);
       }
+      setTrialChecked(true);
+    } else if (showGameOver && !trialChecked && trialRunRef.current) {
       setTrialChecked(true);
     }
   }, [showGameOver, trialChecked]);
