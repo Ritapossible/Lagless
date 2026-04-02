@@ -69,13 +69,15 @@ export function setDiscordUsername(username: string): void {
 }
 
 export function checkOptimumTrialEligibility(progress: PlayerProgress): boolean {
-  if (progress.trialUsed) return false;
   if (progress.optimumLayerUnlocked) return false;
+  // Count how many conditions the player has met
+  let conditionsMet = 0;
   // Condition 1: reached level 10
-  if (progress.highestLevel >= 10) return true;
+  if (progress.highestLevel >= 10) conditionsMet++;
   // Condition 2: failed 5 total runs
-  if (progress.totalRuns >= 5) return true;
-  return false;
+  if (progress.totalRuns >= 5) conditionsMet++;
+  // Allow one trial per condition met
+  return conditionsMet > progress.trialsUsed;
 }
 
 // Resume Node calculation
