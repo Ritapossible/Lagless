@@ -90,10 +90,10 @@ export function checkOptimumTrialEligibility(progress: PlayerProgress): boolean 
   return false;
 }
 
-export function markTrialConditionUsed(progress: PlayerProgress): void {
-  const p = { ...progress };
+export function markTrialConditionUsed(): void {
+  const p = loadProgress();
   const used = p.trialConditionUsed || { failed5: false, reachedLv10: false, dailyMission: false };
-  // Mark the first unmet condition as used
+  // Mark the first eligible condition as used
   if (p.totalRuns >= 5 && !used.failed5) {
     used.failed5 = true;
   } else if (p.highestLevel >= 10 && !used.reachedLv10) {
