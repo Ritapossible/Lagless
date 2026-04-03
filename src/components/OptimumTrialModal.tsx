@@ -1,13 +1,15 @@
-import { loadProgress } from "@/game/playerProgress";
+import { loadProgress, countEligibleTrials } from "@/game/playerProgress";
 import { CheckCircle, Calendar, Zap } from "lucide-react";
 
 interface Props {
   onAccept: () => void;
   onDecline: () => void;
+  trialsAvailable?: number;
 }
 
-const OptimumTrialModal = ({ onAccept, onDecline }: Props) => {
+const OptimumTrialModal = ({ onAccept, onDecline, trialsAvailable: trialsAvailableProp }: Props) => {
   const progress = loadProgress();
+  const trialsAvailable = trialsAvailableProp ?? countEligibleTrials(progress);
 
   // Determine which conditions were met
   const reachedLv10 = progress.highestLevel >= 10;
@@ -85,7 +87,10 @@ const OptimumTrialModal = ({ onAccept, onDecline }: Props) => {
           }}
         >
           <Zap className="inline w-5 h-5 text-yellow-400 mr-2 -mt-0.5" />
-          Try Optimum Layer Preview
+          {trialsAvailable > 1
+            ? `Try Optimum Layer (${trialsAvailable} Trials)`
+            : "Try Optimum Layer Preview"
+          }
         </button>
 
         <p className="font-body text-[10px] text-muted-foreground text-center mb-6">

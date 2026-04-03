@@ -80,14 +80,17 @@ export function setDiscordUsername(username: string): void {
 }
 
 export function checkOptimumTrialEligibility(progress: PlayerProgress): boolean {
-  if (progress.optimumLayerUnlocked) return false;
+  return countEligibleTrials(progress) > 0;
+}
+
+export function countEligibleTrials(progress: PlayerProgress): number {
+  if (progress.optimumLayerUnlocked) return 0;
   const used = progress.trialConditionUsed || { failed5: false, reachedLv10: false, dailyMission: false };
-  // Condition 1: failed 5 runs (and not yet used this condition's trial)
-  if (progress.totalRuns >= 5 && !used.failed5) return true;
-  // Condition 2: reached level 10 (and not yet used this condition's trial)
-  if (progress.highestLevel >= 10 && !used.reachedLv10) return true;
+  let count = 0;
+  if (progress.totalRuns >= 5 && !used.failed5) count++;
+  if (progress.highestLevel >= 10 && !used.reachedLv10) count++;
   // Condition 3: daily mission (not yet implemented)
-  return false;
+  return count;
 }
 
 export function markTrialConditionUsed(): void {

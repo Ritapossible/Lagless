@@ -3,7 +3,7 @@ import { createInitialState, updateGame, switchLane, jump, activateAbility } fro
 import { renderGame } from "@/game/renderer";
 import { GameState, WORLDS } from "@/game/types";
 import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, startBGM, stopBGM, resumeAudio } from "@/game/audio";
-import { updateAfterRun, loadProgress, markTrialConditionUsed, checkOptimumTrialEligibility, updateResumeNode, calculateResumeNode } from "@/game/playerProgress";
+import { updateAfterRun, loadProgress, markTrialConditionUsed, checkOptimumTrialEligibility, countEligibleTrials, updateResumeNode, calculateResumeNode } from "@/game/playerProgress";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 import OptimumTrialModal from "./OptimumTrialModal";
@@ -19,6 +19,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
   const [showInstructions, setShowInstructions] = useState(true);
   const [showTrialModal, setShowTrialModal] = useState(false);
   const [trialChecked, setTrialChecked] = useState(false);
+  const [remainingTrials, setRemainingTrials] = useState(0);
   const characterRef = useRef(character);
   const trialActiveRef = useRef(false);
   const trialRunRef = useRef(false); // tracks if current/last run was a trial
@@ -39,11 +40,20 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
     if (showGameOver && !trialChecked && !trialRunRef.current) {
       // Only track real run stats (not trial runs) for progress
       const progress = updateAfterRun(stateRef.current.level, stateRef.current.score, Math.max(stateRef.current.bestCombo, stateRef.current.comboMultiplier));
-      if (checkOptimumTrialEligibility(progress)) {
+      const eligible = countEligibleTrials(progress);
+      if (eligible > 0) {
+        setRemainingTrials(eligible);
         setShowTrialModal(true);
       }
       setTrialChecked(true);
     } else if (showGameOver && !trialChecked && trialRunRef.current) {
+      // Trial run just ended — check if more trials remain
+      const progress = loadProgress();
+      const eligible = countEligibleTrials(progress);
+      if (eligible > 0) {
+        setRemainingTrials(eligible);
+        setShowTrialModal(true);
+      }
       setTrialChecked(true);
     }
   }, [showGameOver, trialChecked]);
@@ -241,6 +251,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
     setShowTrialModal(false);
     // Mark the condition as used immediately when player accepts
     markTrialConditionUsed();
+    setRemainingTrials(prev => prev - 1);
     trialActiveRef.current = true;
     trialRunRef.current = true;
     trialTimerRef.current = 60; // 60-second trial
@@ -250,7 +261,8 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
     stateRef.current.running = true;
     lastTimeRef.current = 0;
     setShowGameOver(false);
-    setTrialChecked(true);
+    // Reset trialChecked so after this trial ends, we check for remaining trials
+    setTrialChecked(false);
     setHudState(stateRef.current);
     startBGM();
     const canvas = canvasRef.current;
@@ -281,7 +293,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
         <GameOverScreen state={hudState} onRestart={handleRestart} onExit={onExit} />
       )}
       {showTrialModal && (
-        <OptimumTrialModal onAccept={handleStartTrial} onDecline={handleDeclineTrial} />
+        <OptimumTrialModal onAccept={handleStartTrial} onDecline={handleDeclineTrial} trialsAvailable={remainingTrials} />
       )}
       {hudState.paused && !showGameOver && !showInstructions && (
         <div className="absolute inset-0 bg-space-dark/80 flex flex-col items-center justify-center z-20">
