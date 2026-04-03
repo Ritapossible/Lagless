@@ -1,4 +1,5 @@
 import { useState } from "react";
+import BuiltByFooter from "./BuiltByFooter";
 import { CHARACTERS, Character } from "@/game/types";
 import warpRunnerImg from "@/assets/char-warp-runner.png";
 import relayMasterImg from "@/assets/char-relay-master.png";
