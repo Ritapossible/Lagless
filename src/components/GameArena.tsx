@@ -293,7 +293,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
         <GameOverScreen state={hudState} onRestart={handleRestart} onExit={onExit} />
       )}
       {showTrialModal && (
-        <OptimumTrialModal onAccept={handleStartTrial} onDecline={handleDeclineTrial} />
+        <OptimumTrialModal onAccept={handleStartTrial} onDecline={handleDeclineTrial} trialsAvailable={remainingTrials} />
       )}
       {hudState.paused && !showGameOver && !showInstructions && (
         <div className="absolute inset-0 bg-space-dark/80 flex flex-col items-center justify-center z-20">
