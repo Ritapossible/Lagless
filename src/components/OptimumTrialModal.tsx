@@ -1,9 +1,10 @@
-import { loadProgress } from "@/game/playerProgress";
+import { loadProgress, countEligibleTrials } from "@/game/playerProgress";
 import { CheckCircle, Calendar, Zap } from "lucide-react";
 
 interface Props {
   onAccept: () => void;
   onDecline: () => void;
+  trialsAvailable?: number;
 }
 
 const OptimumTrialModal = ({ onAccept, onDecline }: Props) => {
