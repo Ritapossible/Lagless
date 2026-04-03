@@ -251,6 +251,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
     setShowTrialModal(false);
     // Mark the condition as used immediately when player accepts
     markTrialConditionUsed();
+    setRemainingTrials(prev => prev - 1);
     trialActiveRef.current = true;
     trialRunRef.current = true;
     trialTimerRef.current = 60; // 60-second trial
@@ -260,7 +261,8 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
     stateRef.current.running = true;
     lastTimeRef.current = 0;
     setShowGameOver(false);
-    setTrialChecked(true);
+    // Reset trialChecked so after this trial ends, we check for remaining trials
+    setTrialChecked(false);
     setHudState(stateRef.current);
     startBGM();
     const canvas = canvasRef.current;
