@@ -7,8 +7,9 @@ interface Props {
   trialsAvailable?: number;
 }
 
-const OptimumTrialModal = ({ onAccept, onDecline }: Props) => {
+const OptimumTrialModal = ({ onAccept, onDecline, trialsAvailable: trialsAvailableProp }: Props) => {
   const progress = loadProgress();
+  const trialsAvailable = trialsAvailableProp ?? countEligibleTrials(progress);
 
   // Determine which conditions were met
   const reachedLv10 = progress.highestLevel >= 10;
