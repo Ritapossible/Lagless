@@ -314,6 +314,12 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
       )}
       {showInstructions && (
         <div className="absolute inset-0 bg-space-dark/95 backdrop-blur-sm flex flex-col items-center z-30 px-4 animate-fade-in overflow-y-auto py-10">
+          <button
+            onClick={() => setShowInstructions(false)}
+            className="self-start text-muted-foreground font-display text-xs tracking-widest uppercase active:scale-95 transition-transform mb-4"
+          >
+            ← Back
+          </button>
           <h2 className="font-display text-2xl font-bold neon-glow mb-1">How to Play</h2>
           <p className="text-muted-foreground text-xs mb-4">Route packets through the network</p>
           <div className="max-w-sm w-full space-y-2 text-sm text-muted-foreground">

@@ -1,5 +1,6 @@
 import { GameState } from "@/game/types";
 import { Zap, Shield, AlertTriangle, Star, Target, XCircle } from "lucide-react";
+import BuiltByFooter from "./BuiltByFooter";
 
 interface GameOverProps {
   state: GameState;
@@ -125,6 +126,8 @@ const GameOverScreen = ({ state, onRestart, onExit }: GameOverProps) => {
           >
             Exit
           </button>
+
+          <BuiltByFooter />
         </div>
 
         <style>{`
@@ -269,6 +272,8 @@ const GameOverScreen = ({ state, onRestart, onExit }: GameOverProps) => {
         >
           Exit
         </button>
+
+        <BuiltByFooter />
       </div>
 
       <style>{`

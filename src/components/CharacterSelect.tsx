@@ -1,4 +1,5 @@
 import { useState } from "react";
+import BuiltByFooter from "./BuiltByFooter";
 import { CHARACTERS, Character } from "@/game/types";
 import warpRunnerImg from "@/assets/char-warp-runner.png";
 import relayMasterImg from "@/assets/char-relay-master.png";
@@ -115,7 +116,7 @@ const CharacterSelect = ({ onSelect, onBack }: Props) => {
       </div>
 
       {/* Play button */}
-      <div className="px-6 pb-8">
+      <div className="px-6 pb-4">
         <button
           onClick={() => onSelect(CHARACTERS[selected])}
           className="w-full py-4 font-display text-lg font-bold tracking-[0.25em] uppercase rounded-2xl bg-primary text-primary-foreground neon-box-intense active:scale-[0.97] transition-transform"
@@ -123,6 +124,7 @@ const CharacterSelect = ({ onSelect, onBack }: Props) => {
           Deploy
         </button>
       </div>
+      <BuiltByFooter />
     </div>
   );
 };
