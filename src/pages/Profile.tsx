@@ -199,6 +199,8 @@ const Profile = () => {
             </div>
           </div>
         )}
+
+        <BuiltByFooter />
       </div>
     </div>
   );
