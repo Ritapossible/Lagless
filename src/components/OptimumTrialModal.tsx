@@ -87,7 +87,10 @@ const OptimumTrialModal = ({ onAccept, onDecline, trialsAvailable: trialsAvailab
           }}
         >
           <Zap className="inline w-5 h-5 text-yellow-400 mr-2 -mt-0.5" />
-          Try Optimum Layer Preview
+          {trialsAvailable > 1
+            ? `Try Optimum Layer (${trialsAvailable} Trials)`
+            : "Try Optimum Layer Preview"
+          }
         </button>
 
         <p className="font-body text-[10px] text-muted-foreground text-center mb-6">
