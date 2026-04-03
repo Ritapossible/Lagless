@@ -72,7 +72,6 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
             levelUpName: "⏱ TRIAL ENDED",
             audioEvents: { ...stateRef.current.audioEvents, gameOver: true },
           };
-          markTrialConditionUsed(loadProgress());
           trialActiveRef.current = false;
           // Stop BGM immediately
           playGameOver();
@@ -240,6 +239,8 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
 
   const handleStartTrial = useCallback(() => {
     setShowTrialModal(false);
+    // Mark the condition as used immediately when player accepts
+    markTrialConditionUsed();
     trialActiveRef.current = true;
     trialRunRef.current = true;
     trialTimerRef.current = 60; // 60-second trial
