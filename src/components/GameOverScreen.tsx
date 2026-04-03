@@ -126,6 +126,8 @@ const GameOverScreen = ({ state, onRestart, onExit }: GameOverProps) => {
           >
             Exit
           </button>
+
+          <BuiltByFooter />
         </div>
 
         <style>{`
