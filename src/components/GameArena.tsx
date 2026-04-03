@@ -19,6 +19,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
   const [showInstructions, setShowInstructions] = useState(true);
   const [showTrialModal, setShowTrialModal] = useState(false);
   const [trialChecked, setTrialChecked] = useState(false);
+  const [remainingTrials, setRemainingTrials] = useState(0);
   const characterRef = useRef(character);
   const trialActiveRef = useRef(false);
   const trialRunRef = useRef(false); // tracks if current/last run was a trial
