@@ -69,7 +69,8 @@ const StartRunModal = ({ onStart, onBack }: StartRunModalProps) => {
 
         {/* Restart option */}
         <button
-          onClick={() => onStart(1)}
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onStart(1); }}
           className="group w-full mb-6 rounded-2xl overflow-hidden active:scale-[0.98] transition-all duration-200"
         >
           <div className="relative px-5 py-4 border border-muted/20 rounded-2xl bg-muted/5 hover:bg-muted/10 transition-colors">
