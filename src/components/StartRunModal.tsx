@@ -7,7 +7,7 @@ interface StartRunModalProps {
 
 const StartRunModal = ({ onStart, onBack }: StartRunModalProps) => {
   const progress = loadProgress();
-  const resumeLevel = progress.lastResumeNodeLevel;
+  const resumeLevel = Math.min(progress.lastResumeNodeLevel, 49);
   const hasResumeNode = resumeLevel > 0;
 
   return (
