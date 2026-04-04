@@ -315,7 +315,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
       {showInstructions && (
         <div className="absolute inset-0 bg-space-dark/95 backdrop-blur-sm flex flex-col items-center z-30 px-4 animate-fade-in overflow-y-auto py-10">
           <button
-            onClick={() => setShowInstructions(false)}
+            onClick={onExit}
             className="self-start text-muted-foreground font-display text-xs tracking-widest uppercase active:scale-95 transition-transform mb-4"
           >
             ← Back
@@ -327,50 +327,63 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
               <span className="text-lg">👆</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">Swipe Left / Right</p>
-                <p className="text-xs">Switch between 3 network lanes. Blue lanes boost combos.</p>
+                <p className="text-xs">Switch between 3 network lanes. Blue relay lanes boost combos and refill latency.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
               <span className="text-lg">⬆️</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">Tap / Swipe Up</p>
-                <p className="text-xs">Jump over spam packets and data storms.</p>
+                <p className="text-xs">Jump over spam packets, data storms, and failure nodes.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
               <span className="text-lg">⚡</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">Ability (Bottom-Right)</p>
-                <p className="text-xs">Activate your character's unique skill with cooldown.</p>
+                <p className="text-xs">Activate your character's unique skill. Speed Warp, Relay Chain, or Node Deploy.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-destructive/5 border border-destructive/20 rounded-xl p-3">
               <span className="text-lg">🔴</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">Avoid Red Lanes</p>
-                <p className="text-xs">Congested lanes drain latency. Collapsing lanes deal damage.</p>
+                <p className="text-xs">Congested lanes drain latency fast. Collapsing lanes deal direct damage to packet integrity.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-accent/5 border border-accent/20 rounded-xl p-3">
               <span className="text-lg">💎</span>
               <div>
-                <p className="text-foreground font-semibold text-sm">Collect Relay Pickups</p>
-                <p className="text-xs">Diamonds refill latency. Green pickups restore health.</p>
+                <p className="text-foreground font-semibold text-sm">Collect Pickups</p>
+                <p className="text-xs">💎 Relay diamonds refill latency. 💚 Green pickups restore health. ⭐ Score pickups boost points.</p>
               </div>
             </div>
-            {/* Progression retention info */}
             <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
               <span className="text-lg">📡</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">Resume Nodes</p>
-                <p className="text-xs">L1–9: No saves. L10–19: Checkpoint every 3 levels. L20–39: Every 2 levels. L40+: Retry from failed level.</p>
+                <p className="text-xs">L1–9: No saves. L10–19: Nodes at L10, 12, 15, 18. L20–39: Every 2 levels. L40–49: Retry from failed level.</p>
               </div>
             </div>
             <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
               <span className="text-lg">🌐</span>
               <div>
                 <p className="text-foreground font-semibold text-sm">5 Network Stages</p>
-                <p className="text-xs">Congestion Zone → Fragmented Grid → Mesh Awakening → FlexNode Dominion → Optimum Layer (L40+).</p>
+                <p className="text-xs">Congestion Zone (L1–12) → Fragmented Grid (L13–25) → Mesh Awakening (L26–32) → FlexNode Dominion (L33–39) → Optimum Layer (L40–50).</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-3">
+              <span className="text-lg">⚠️</span>
+              <div>
+                <p className="text-foreground font-semibold text-sm">Boss Waves</p>
+                <p className="text-xs">Levels 25 and 39 trigger boss waves with increased obstacles, lane instability, and routing pressure.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
+              <span className="text-lg">🏁</span>
+              <div>
+                <p className="text-foreground font-semibold text-sm">Victory at Level 50</p>
+                <p className="text-xs">Synchronize the Core Network to complete the game and unlock Endless Routing Mode.</p>
               </div>
             </div>
           </div>
