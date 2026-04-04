@@ -40,7 +40,8 @@ const StartRunModal = ({ onStart, onBack }: StartRunModalProps) => {
         {/* Resume option */}
         {hasResumeNode && (
           <button
-            onClick={() => onStart(resumeLevel)}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onStart(resumeLevel); }}
             className="group w-full mb-3 rounded-2xl overflow-hidden active:scale-[0.98] transition-all duration-200"
           >
             <div className="relative px-5 py-4 border-2 border-primary/40 rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-transparent neon-box">
