@@ -109,6 +109,7 @@ export function markTrialConditionUsed(): void {
 
 // Resume Node calculation
 export function calculateResumeNode(level: number): number {
+  if (level >= 50) return 49; // Game ends at 50, max resume is 49
   if (level >= 40) return level; // Optimum Layer: retry from failed level
   if (level >= 20) {
     // Every 2 levels: 20, 22, 24, ...
