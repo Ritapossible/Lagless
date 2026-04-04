@@ -7,7 +7,7 @@ interface StartRunModalProps {
 
 const StartRunModal = ({ onStart, onBack }: StartRunModalProps) => {
   const progress = loadProgress();
-  const resumeLevel = progress.lastResumeNodeLevel;
+  const resumeLevel = Math.min(progress.lastResumeNodeLevel, 49);
   const hasResumeNode = resumeLevel > 0;
 
   return (
@@ -40,7 +40,8 @@ const StartRunModal = ({ onStart, onBack }: StartRunModalProps) => {
         {/* Resume option */}
         {hasResumeNode && (
           <button
-            onClick={() => onStart(resumeLevel)}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onStart(resumeLevel); }}
             className="group w-full mb-3 rounded-2xl overflow-hidden active:scale-[0.98] transition-all duration-200"
           >
             <div className="relative px-5 py-4 border-2 border-primary/40 rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-transparent neon-box">
@@ -68,7 +69,8 @@ const StartRunModal = ({ onStart, onBack }: StartRunModalProps) => {
 
         {/* Restart option */}
         <button
-          onClick={() => onStart(1)}
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onStart(1); }}
           className="group w-full mb-6 rounded-2xl overflow-hidden active:scale-[0.98] transition-all duration-200"
         >
           <div className="relative px-5 py-4 border border-muted/20 rounded-2xl bg-muted/5 hover:bg-muted/10 transition-colors">
@@ -96,8 +98,9 @@ const StartRunModal = ({ onStart, onBack }: StartRunModalProps) => {
 
         {/* Back button */}
         <button
-          onClick={onBack}
-          className="w-full flex items-center justify-center gap-2 px-6 py-2.5 font-display text-xs tracking-widest uppercase text-muted-foreground hover:text-foreground active:scale-95 transition-all"
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onBack(); }}
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 font-display text-xs tracking-widest uppercase text-muted-foreground hover:text-foreground active:scale-95 transition-all"
         >
           <span>←</span>
           <span>Back to Selection</span>

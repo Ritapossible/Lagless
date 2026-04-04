@@ -53,7 +53,8 @@ export function saveProgress(progress: PlayerProgress): void {
 export function updateAfterRun(level: number, score?: number, combo?: number): PlayerProgress {
   const p = loadProgress();
   p.totalRuns++;
-  p.highestLevel = Math.max(p.highestLevel, level);
+  const cappedLevel = Math.min(level, 50);
+  p.highestLevel = Math.max(p.highestLevel, cappedLevel);
   if (score !== undefined) p.highScore = Math.max(p.highScore, score);
   if (combo !== undefined) p.bestCombo = Math.max(p.bestCombo, combo);
   if (level >= 40) p.optimumLayerUnlocked = true;
@@ -109,6 +110,7 @@ export function markTrialConditionUsed(): void {
 
 // Resume Node calculation
 export function calculateResumeNode(level: number): number {
+  if (level >= 50) return 49; // Game ends at 50, max resume is 49
   if (level >= 40) return level; // Optimum Layer: retry from failed level
   if (level >= 20) {
     // Every 2 levels: 20, 22, 24, ...
