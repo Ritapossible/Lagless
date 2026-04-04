@@ -40,6 +40,7 @@ const Play = () => {
       character={selectedChar}
       startLevel={startLevel}
       onExit={() => navigate("/")}
+      onBack={() => setStartLevel(null)}
     />
   );
 };

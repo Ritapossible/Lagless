@@ -8,7 +8,7 @@ import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 import OptimumTrialModal from "./OptimumTrialModal";
 
-const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; character?: import("@/game/types").Character; startLevel?: number }) => {
+const GameArena = ({ onExit, onBack, character, startLevel = 1 }: { onExit: () => void; onBack?: () => void; character?: import("@/game/types").Character; startLevel?: number }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stateRef = useRef<GameState>(createInitialState(character, startLevel));
   const animRef = useRef<number>(0);
@@ -315,7 +315,7 @@ const GameArena = ({ onExit, character, startLevel = 1 }: { onExit: () => void; 
       {showInstructions && (
         <div className="absolute inset-0 bg-space-dark/95 backdrop-blur-sm flex flex-col items-center z-30 px-4 animate-fade-in overflow-y-auto py-10">
           <button
-            onClick={onExit}
+            onClick={onBack || onExit}
             className="self-start text-muted-foreground font-display text-xs tracking-widest uppercase active:scale-95 transition-transform mb-4"
           >
             ← Back
