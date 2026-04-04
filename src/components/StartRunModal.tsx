@@ -96,8 +96,9 @@ const StartRunModal = ({ onStart, onBack }: StartRunModalProps) => {
 
         {/* Back button */}
         <button
-          onClick={onBack}
-          className="w-full flex items-center justify-center gap-2 px-6 py-2.5 font-display text-xs tracking-widest uppercase text-muted-foreground hover:text-foreground active:scale-95 transition-all"
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onBack(); }}
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 font-display text-xs tracking-widest uppercase text-muted-foreground hover:text-foreground active:scale-95 transition-all"
         >
           <span>←</span>
           <span>Back to Selection</span>
