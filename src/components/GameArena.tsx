@@ -315,7 +315,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1 }: { onExit: () =
       {showInstructions && (
         <div className="absolute inset-0 bg-space-dark/95 backdrop-blur-sm flex flex-col items-center z-30 px-4 animate-fade-in overflow-y-auto py-10">
           <button
-            onClick={onExit}
+            onClick={onBack || onExit}
             className="self-start text-muted-foreground font-display text-xs tracking-widest uppercase active:scale-95 transition-transform mb-4"
           >
             ← Back
