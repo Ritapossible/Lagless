@@ -53,7 +53,8 @@ export function saveProgress(progress: PlayerProgress): void {
 export function updateAfterRun(level: number, score?: number, combo?: number): PlayerProgress {
   const p = loadProgress();
   p.totalRuns++;
-  p.highestLevel = Math.max(p.highestLevel, level);
+  const cappedLevel = Math.min(level, 50);
+  p.highestLevel = Math.max(p.highestLevel, cappedLevel);
   if (score !== undefined) p.highScore = Math.max(p.highScore, score);
   if (combo !== undefined) p.bestCombo = Math.max(p.bestCombo, combo);
   if (level >= 40) p.optimumLayerUnlocked = true;
