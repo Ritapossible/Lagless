@@ -104,6 +104,8 @@ export function markTrialConditionUsed(): void {
     used.failed5 = true;
   } else if (p.highestLevel >= 10 && !used.reachedLv10) {
     used.reachedLv10 = true;
+  } else if (isDailyRewardAvailable() && !used.dailyMission) {
+    used.dailyMission = true;
   }
   p.trialConditionUsed = used;
   p.trialsUsed = (p.trialsUsed || 0) + 1;
