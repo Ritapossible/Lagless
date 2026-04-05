@@ -234,6 +234,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   s.pickups = s.pickups.map(p => {
     if (!p.collected && p.lane === s.currentLane && Math.abs(p.z - playerZ) < 40) {
       s.audioEvents.pickup = true;
+      s.pickupsCollected++;
       if (p.type === 'relay') {
         s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + 20);
         s.comboCount++;
