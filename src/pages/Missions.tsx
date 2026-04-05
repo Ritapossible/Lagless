@@ -224,10 +224,21 @@ const Missions = () => {
           </div>
 
           {state.rewardClaimed ? (
-            <div className="text-center py-2">
-              <span className="font-display text-xs tracking-widest text-primary uppercase">
+            <div className="text-center py-2 space-y-3">
+              <span className="font-display text-xs tracking-widest text-primary uppercase block">
                 ✅ Reward Claimed — Trial Unlocked
               </span>
+              <button
+                onClick={() => navigate("/play")}
+                className="w-full py-3 font-display text-sm font-bold tracking-[0.2em] uppercase
+                  border-2 border-primary rounded-xl bg-primary/10 neon-box
+                  active:scale-[0.97] transition-all duration-200"
+                style={{
+                  boxShadow: '0 0 15px hsl(var(--primary) / 0.4), 0 0 30px hsl(var(--primary) / 0.15)',
+                }}
+              >
+                ⚡ Play Optimum Trial
+              </button>
             </div>
           ) : state.allCompleted ? (
             <button
