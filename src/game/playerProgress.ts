@@ -91,7 +91,8 @@ export function countEligibleTrials(progress: PlayerProgress): number {
   let count = 0;
   if (progress.totalRuns >= 5 && !used.failed5) count++;
   if (progress.highestLevel >= 10 && !used.reachedLv10) count++;
-  // Condition 3: daily mission (not yet implemented)
+  // Condition 3: daily mission completed and reward claimed
+  if (isDailyRewardAvailable() && !used.dailyMission) count++;
   return count;
 }
 
