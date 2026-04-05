@@ -56,6 +56,8 @@ export function createInitialState(character?: import('./types').Character, star
     bestCombo: 0,
     failureCause: '',
     floatingTexts: [],
+    pickupsCollected: 0,
+    latencyAbove60Time: 0,
     audioEvents: { hit: false, pickup: false, levelUp: false, gameOver: false },
   };
 }
