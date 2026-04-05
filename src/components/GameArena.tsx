@@ -40,7 +40,16 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1 }: { onExit: () =
   useEffect(() => {
     if (showGameOver && !trialChecked && !trialRunRef.current) {
       // Only track real run stats (not trial runs) for progress
-      const progress = updateAfterRun(stateRef.current.level, stateRef.current.score, Math.max(stateRef.current.bestCombo, stateRef.current.comboMultiplier));
+      const gs = stateRef.current;
+      const progress = updateAfterRun(gs.level, gs.score, Math.max(gs.bestCombo, gs.comboMultiplier));
+      // Update daily missions with run stats
+      const missionStats: RunMissionStats = {
+        latencyAbove60Seconds: gs.latencyAbove60Time,
+        pickupsCollected: gs.pickupsCollected,
+        relaysUsed: gs.relaysUsed,
+        flexNodesDeployed: gs.flexNodesDeployed,
+      };
+      updateDailyMissionsAfterRun(missionStats);
       const eligible = countEligibleTrials(progress);
       if (eligible > 0) {
         setRemainingTrials(eligible);
