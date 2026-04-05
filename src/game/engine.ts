@@ -125,6 +125,11 @@ export function updateGame(state: GameState, dt: number): GameState {
   }
   s.latencyBudget = Math.max(0, s.latencyBudget - drainRate * dt);
 
+  // Track latency above 60% for daily missions
+  if ((s.latencyBudget / s.maxLatency) > 0.6) {
+    s.latencyAbove60Time += dt;
+  }
+
   // Relay boost refill — stage-specific rate
   if (currentLaneState === 'relay') {
     s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + wc.relayRefillRate * dt);
