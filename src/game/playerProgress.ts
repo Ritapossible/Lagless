@@ -1,4 +1,5 @@
 // Persistent player progress stored in localStorage
+import { isDailyRewardAvailable } from './dailyMissions';
 
 export interface PlayerProgress {
   discordUsername: string;
