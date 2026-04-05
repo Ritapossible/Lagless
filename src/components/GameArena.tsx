@@ -4,6 +4,7 @@ import { renderGame } from "@/game/renderer";
 import { GameState, WORLDS } from "@/game/types";
 import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, startBGM, stopBGM, resumeAudio } from "@/game/audio";
 import { updateAfterRun, loadProgress, markTrialConditionUsed, checkOptimumTrialEligibility, countEligibleTrials, updateResumeNode, calculateResumeNode } from "@/game/playerProgress";
+import { updateDailyMissionsAfterRun, RunMissionStats } from "@/game/dailyMissions";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 import OptimumTrialModal from "./OptimumTrialModal";
@@ -39,7 +40,16 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1 }: { onExit: () =
   useEffect(() => {
     if (showGameOver && !trialChecked && !trialRunRef.current) {
       // Only track real run stats (not trial runs) for progress
-      const progress = updateAfterRun(stateRef.current.level, stateRef.current.score, Math.max(stateRef.current.bestCombo, stateRef.current.comboMultiplier));
+      const gs = stateRef.current;
+      const progress = updateAfterRun(gs.level, gs.score, Math.max(gs.bestCombo, gs.comboMultiplier));
+      // Update daily missions with run stats
+      const missionStats: RunMissionStats = {
+        latencyAbove60Seconds: gs.latencyAbove60Time,
+        pickupsCollected: gs.pickupsCollected,
+        relaysUsed: gs.relaysUsed,
+        flexNodesDeployed: gs.flexNodesDeployed,
+      };
+      updateDailyMissionsAfterRun(missionStats);
       const eligible = countEligibleTrials(progress);
       if (eligible > 0) {
         setRemainingTrials(eligible);

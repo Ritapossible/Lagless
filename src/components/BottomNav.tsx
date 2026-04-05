@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
 const navItems = [
-  { icon: Target, label: "Missions", path: "/", comingSoon: true },
+  { icon: Target, label: "Missions", path: "/missions", comingSoon: false },
   { icon: Trophy, label: "Leaderboard", path: "/", comingSoon: true },
   { icon: ShoppingBag, label: "Shop", path: "/", comingSoon: true },
   { icon: User, label: "Profile", path: "/profile", comingSoon: false },

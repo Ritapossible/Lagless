@@ -1,4 +1,5 @@
 // Persistent player progress stored in localStorage
+import { isDailyRewardAvailable } from './dailyMissions';
 
 export interface PlayerProgress {
   discordUsername: string;
@@ -90,7 +91,8 @@ export function countEligibleTrials(progress: PlayerProgress): number {
   let count = 0;
   if (progress.totalRuns >= 5 && !used.failed5) count++;
   if (progress.highestLevel >= 10 && !used.reachedLv10) count++;
-  // Condition 3: daily mission (not yet implemented)
+  // Condition 3: daily mission completed and reward claimed
+  if (isDailyRewardAvailable() && !used.dailyMission) count++;
   return count;
 }
 
@@ -102,6 +104,8 @@ export function markTrialConditionUsed(): void {
     used.failed5 = true;
   } else if (p.highestLevel >= 10 && !used.reachedLv10) {
     used.reachedLv10 = true;
+  } else if (isDailyRewardAvailable() && !used.dailyMission) {
+    used.dailyMission = true;
   }
   p.trialConditionUsed = used;
   p.trialsUsed = (p.trialsUsed || 0) + 1;

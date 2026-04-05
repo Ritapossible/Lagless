@@ -56,6 +56,8 @@ export function createInitialState(character?: import('./types').Character, star
     bestCombo: 0,
     failureCause: '',
     floatingTexts: [],
+    pickupsCollected: 0,
+    latencyAbove60Time: 0,
     audioEvents: { hit: false, pickup: false, levelUp: false, gameOver: false },
   };
 }
@@ -122,6 +124,11 @@ export function updateGame(state: GameState, dt: number): GameState {
     }
   }
   s.latencyBudget = Math.max(0, s.latencyBudget - drainRate * dt);
+
+  // Track latency above 60% for daily missions
+  if ((s.latencyBudget / s.maxLatency) > 0.6) {
+    s.latencyAbove60Time += dt;
+  }
 
   // Relay boost refill — stage-specific rate
   if (currentLaneState === 'relay') {
@@ -227,6 +234,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   s.pickups = s.pickups.map(p => {
     if (!p.collected && p.lane === s.currentLane && Math.abs(p.z - playerZ) < 40) {
       s.audioEvents.pickup = true;
+      s.pickupsCollected++;
       if (p.type === 'relay') {
         s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + 20);
         s.comboCount++;
