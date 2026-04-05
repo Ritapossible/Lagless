@@ -99,6 +99,8 @@ export interface GameState {
   bestCombo: number;
   failureCause: string;
   floatingTexts: FloatingText[];
+  pickupsCollected: number;
+  latencyAbove60Time: number;
   audioEvents: {
     hit: boolean;
     pickup: boolean;
