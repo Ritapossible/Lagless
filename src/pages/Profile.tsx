@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Edit3, Check, X, Trophy, Zap, Target, RotateCcw, Shield, Award } from "lucide-react";
 import BuiltByFooter from "@/components/BuiltByFooter";
+import AchievementBadges from "@/components/AchievementBadges";
 import { loadProgress, saveProgress, PlayerProgress } from "@/game/playerProgress";
 
 const Profile = () => {
