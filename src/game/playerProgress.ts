@@ -16,6 +16,7 @@ export interface PlayerProgress {
   };
   optimumLayerUnlocked: boolean;
   lastResumeNodeLevel: number;
+  timesCompleted: number;
 }
 
 const STORAGE_KEY = 'latency-escape-progress';
