@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Edit3, Check, X, Trophy, Zap, Target, RotateCcw, Shield, Award } from "lucide-react";
 import BuiltByFooter from "@/components/BuiltByFooter";
+import AchievementBadges from "@/components/AchievementBadges";
 import { loadProgress, saveProgress, PlayerProgress } from "@/game/playerProgress";
 
 const Profile = () => {
@@ -151,7 +152,9 @@ const Profile = () => {
           )}
         </div>
 
-        {/* Progression */}
+        {/* Achievements */}
+        <AchievementBadges progress={progress} />
+
         <div className="rounded-xl border border-primary/20 bg-secondary/30 p-4 mb-6">
           <h3 className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-3">
             Progression
