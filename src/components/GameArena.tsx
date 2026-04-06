@@ -9,9 +9,9 @@ import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 import OptimumTrialModal from "./OptimumTrialModal";
 
-const GameArena = ({ onExit, onBack, character, startLevel = 1 }: { onExit: () => void; onBack?: () => void; character?: import("@/game/types").Character; startLevel?: number }) => {
+const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = false }: { onExit: () => void; onBack?: () => void; character?: import("@/game/types").Character; startLevel?: number; startAsTrial?: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const stateRef = useRef<GameState>(createInitialState(character, startLevel));
+  const stateRef = useRef<GameState>(createInitialState(character, startAsTrial ? 40 : startLevel));
   const animRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);

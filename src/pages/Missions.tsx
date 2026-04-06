@@ -229,7 +229,7 @@ const Missions = () => {
                 ✅ Reward Claimed — Trial Unlocked
               </span>
               <button
-                onClick={() => navigate("/play")}
+                onClick={() => navigate("/play", { state: { startTrial: true } })}
                 className="w-full py-3 font-display text-sm font-bold tracking-[0.2em] uppercase
                   border-2 border-primary rounded-xl bg-primary/10 neon-box
                   active:scale-[0.97] transition-all duration-200"
