@@ -152,7 +152,9 @@ const Profile = () => {
           )}
         </div>
 
-        {/* Progression */}
+        {/* Achievements */}
+        <AchievementBadges progress={progress} />
+
         <div className="rounded-xl border border-primary/20 bg-secondary/30 p-4 mb-6">
           <h3 className="font-display text-xs tracking-widest uppercase text-muted-foreground mb-3">
             Progression
