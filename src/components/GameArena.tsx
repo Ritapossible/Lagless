@@ -39,9 +39,18 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
   // Check trial eligibility when game ends
   useEffect(() => {
     if (showGameOver && !trialChecked && !trialRunRef.current) {
-      // Only track real run stats (not trial runs) for progress
       const gs = stateRef.current;
-      const progress = updateAfterRun(gs.level, gs.score, Math.max(gs.bestCombo, gs.comboMultiplier));
+      const isVictory = gs.failureCause === '__VICTORY__';
+      
+      let progress;
+      if (isVictory) {
+        // Victory: reset progress for fresh playthrough
+        progress = completeGame(gs.score, Math.max(gs.bestCombo, gs.comboMultiplier));
+      } else {
+        // Normal failure: track run stats
+        progress = updateAfterRun(gs.level, gs.score, Math.max(gs.bestCombo, gs.comboMultiplier));
+      }
+      
       // Update daily missions with run stats
       const missionStats: RunMissionStats = {
         latencyAbove60Seconds: gs.latencyAbove60Time,
@@ -50,10 +59,13 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
         flexNodesDeployed: gs.flexNodesDeployed,
       };
       updateDailyMissionsAfterRun(missionStats);
-      const eligible = countEligibleTrials(progress);
-      if (eligible > 0) {
-        setRemainingTrials(eligible);
-        setShowTrialModal(true);
+      
+      if (!isVictory) {
+        const eligible = countEligibleTrials(progress);
+        if (eligible > 0) {
+          setRemainingTrials(eligible);
+          setShowTrialModal(true);
+        }
       }
       setTrialChecked(true);
     } else if (showGameOver && !trialChecked && trialRunRef.current) {
