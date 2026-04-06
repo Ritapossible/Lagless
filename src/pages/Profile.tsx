@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Edit3, Check, X, Trophy, Zap, Target, RotateCcw, Shield } from "lucide-react";
+import { ArrowLeft, Edit3, Check, X, Trophy, Zap, Target, RotateCcw, Shield, Award } from "lucide-react";
 import BuiltByFooter from "@/components/BuiltByFooter";
 import { loadProgress, saveProgress, PlayerProgress } from "@/game/playerProgress";
 
@@ -140,6 +140,15 @@ const Profile = () => {
             label="Best Combo"
             value={`x${(progress.bestCombo || 0).toFixed(1)}`}
           />
+          {(progress.timesCompleted || 0) > 0 && (
+            <div className="col-span-2">
+              <StatTile
+                icon={<Award className="w-5 h-5 text-yellow-500" />}
+                label="Network Synchronized"
+                value={`${progress.timesCompleted}x`}
+              />
+            </div>
+          )}
         </div>
 
         {/* Progression */}

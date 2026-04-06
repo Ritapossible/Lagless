@@ -3,7 +3,7 @@ import { createInitialState, updateGame, switchLane, jump, activateAbility } fro
 import { renderGame } from "@/game/renderer";
 import { GameState, WORLDS } from "@/game/types";
 import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, startBGM, stopBGM, resumeAudio } from "@/game/audio";
-import { updateAfterRun, loadProgress, markTrialConditionUsed, checkOptimumTrialEligibility, countEligibleTrials, updateResumeNode, calculateResumeNode } from "@/game/playerProgress";
+import { updateAfterRun, loadProgress, markTrialConditionUsed, checkOptimumTrialEligibility, countEligibleTrials, updateResumeNode, calculateResumeNode, completeGame } from "@/game/playerProgress";
 import { updateDailyMissionsAfterRun, RunMissionStats } from "@/game/dailyMissions";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
@@ -39,9 +39,18 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
   // Check trial eligibility when game ends
   useEffect(() => {
     if (showGameOver && !trialChecked && !trialRunRef.current) {
-      // Only track real run stats (not trial runs) for progress
       const gs = stateRef.current;
-      const progress = updateAfterRun(gs.level, gs.score, Math.max(gs.bestCombo, gs.comboMultiplier));
+      const isVictory = gs.failureCause === '__VICTORY__';
+      
+      let progress;
+      if (isVictory) {
+        // Victory: reset progress for fresh playthrough
+        progress = completeGame(gs.score, Math.max(gs.bestCombo, gs.comboMultiplier));
+      } else {
+        // Normal failure: track run stats
+        progress = updateAfterRun(gs.level, gs.score, Math.max(gs.bestCombo, gs.comboMultiplier));
+      }
+      
       // Update daily missions with run stats
       const missionStats: RunMissionStats = {
         latencyAbove60Seconds: gs.latencyAbove60Time,
@@ -50,10 +59,13 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
         flexNodesDeployed: gs.flexNodesDeployed,
       };
       updateDailyMissionsAfterRun(missionStats);
-      const eligible = countEligibleTrials(progress);
-      if (eligible > 0) {
-        setRemainingTrials(eligible);
-        setShowTrialModal(true);
+      
+      if (!isVictory) {
+        const eligible = countEligibleTrials(progress);
+        if (eligible > 0) {
+          setRemainingTrials(eligible);
+          setShowTrialModal(true);
+        }
       }
       setTrialChecked(true);
     } else if (showGameOver && !trialChecked && trialRunRef.current) {
@@ -246,7 +258,9 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     trialActiveRef.current = false;
     trialRunRef.current = false;
     trialTimerRef.current = 0;
-    stateRef.current = createInitialState(characterRef.current, startLevel);
+    // After victory, always restart from level 1
+    const restartLevel = stateRef.current.failureCause === '__VICTORY__' ? 1 : startLevel;
+    stateRef.current = createInitialState(characterRef.current, restartLevel);
     stateRef.current.running = true;
     lastTimeRef.current = 0;
     setShowGameOver(false);
@@ -255,7 +269,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     startBGM();
     const canvas = canvasRef.current;
     if (canvas) startGameLoop(canvas);
-  }, [startGameLoop]);
+  }, [startGameLoop, startLevel]);
 
   const handleStartTrial = useCallback(() => {
     setShowTrialModal(false);

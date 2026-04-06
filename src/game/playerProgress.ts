@@ -16,6 +16,7 @@ export interface PlayerProgress {
   };
   optimumLayerUnlocked: boolean;
   lastResumeNodeLevel: number;
+  timesCompleted: number;
 }
 
 const STORAGE_KEY = 'latency-escape-progress';
@@ -35,6 +36,7 @@ const DEFAULT_PROGRESS: PlayerProgress = {
   },
   optimumLayerUnlocked: false,
   lastResumeNodeLevel: 0,
+  timesCompleted: 0,
 };
 
 export function loadProgress(): PlayerProgress {
@@ -110,6 +112,23 @@ export function markTrialConditionUsed(): void {
   p.trialConditionUsed = used;
   p.trialsUsed = (p.trialsUsed || 0) + 1;
   saveProgress(p);
+}
+
+// Called when player reaches Level 50 (victory) — resets progress for a fresh run
+export function completeGame(score: number, combo: number): PlayerProgress {
+  const p = loadProgress();
+  p.timesCompleted = (p.timesCompleted || 0) + 1;
+  p.totalRuns++;
+  p.highScore = Math.max(p.highScore, score);
+  p.bestCombo = Math.max(p.bestCombo, combo);
+  // Reset resume node and trial conditions for fresh playthrough
+  p.lastResumeNodeLevel = 0;
+  p.trialConditionUsed = { failed5: false, reachedLv10: false, dailyMission: false };
+  p.trialsUsed = 0;
+  p.trialUsed = false;
+  // Keep optimumLayerUnlocked true since they've beaten the game
+  saveProgress(p);
+  return p;
 }
 
 // Resume Node calculation
