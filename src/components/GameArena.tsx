@@ -258,7 +258,9 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     trialActiveRef.current = false;
     trialRunRef.current = false;
     trialTimerRef.current = 0;
-    stateRef.current = createInitialState(characterRef.current, startLevel);
+    // After victory, always restart from level 1
+    const restartLevel = stateRef.current.failureCause === '__VICTORY__' ? 1 : startLevel;
+    stateRef.current = createInitialState(characterRef.current, restartLevel);
     stateRef.current.running = true;
     lastTimeRef.current = 0;
     setShowGameOver(false);
@@ -267,7 +269,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     startBGM();
     const canvas = canvasRef.current;
     if (canvas) startGameLoop(canvas);
-  }, [startGameLoop]);
+  }, [startGameLoop, startLevel]);
 
   const handleStartTrial = useCallback(() => {
     setShowTrialModal(false);
