@@ -3,7 +3,7 @@ import { createInitialState, updateGame, switchLane, jump, activateAbility } fro
 import { renderGame } from "@/game/renderer";
 import { GameState, WORLDS } from "@/game/types";
 import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, startBGM, stopBGM, resumeAudio } from "@/game/audio";
-import { updateAfterRun, loadProgress, markTrialConditionUsed, checkOptimumTrialEligibility, countEligibleTrials, updateResumeNode, calculateResumeNode } from "@/game/playerProgress";
+import { updateAfterRun, loadProgress, markTrialConditionUsed, checkOptimumTrialEligibility, countEligibleTrials, updateResumeNode, calculateResumeNode, completeGame } from "@/game/playerProgress";
 import { updateDailyMissionsAfterRun, RunMissionStats } from "@/game/dailyMissions";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
