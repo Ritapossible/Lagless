@@ -22,9 +22,9 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
   const [trialChecked, setTrialChecked] = useState(false);
   const [remainingTrials, setRemainingTrials] = useState(0);
   const characterRef = useRef(character);
-  const trialActiveRef = useRef(false);
-  const trialRunRef = useRef(false); // tracks if current/last run was a trial
-  const trialTimerRef = useRef(0);
+  const trialActiveRef = useRef(startAsTrial);
+  const trialRunRef = useRef(startAsTrial); // tracks if current/last run was a trial
+  const trialTimerRef = useRef(startAsTrial ? 60 : 0);
 
   // Start game + BGM after instructions dismissed
   useEffect(() => {
