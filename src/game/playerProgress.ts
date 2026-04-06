@@ -36,6 +36,7 @@ const DEFAULT_PROGRESS: PlayerProgress = {
   },
   optimumLayerUnlocked: false,
   lastResumeNodeLevel: 0,
+  timesCompleted: 0,
 };
 
 export function loadProgress(): PlayerProgress {
