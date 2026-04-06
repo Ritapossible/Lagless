@@ -114,6 +114,23 @@ export function markTrialConditionUsed(): void {
   saveProgress(p);
 }
 
+// Called when player reaches Level 50 (victory) — resets progress for a fresh run
+export function completeGame(score: number, combo: number): PlayerProgress {
+  const p = loadProgress();
+  p.timesCompleted = (p.timesCompleted || 0) + 1;
+  p.totalRuns++;
+  p.highScore = Math.max(p.highScore, score);
+  p.bestCombo = Math.max(p.bestCombo, combo);
+  // Reset resume node and trial conditions for fresh playthrough
+  p.lastResumeNodeLevel = 0;
+  p.trialConditionUsed = { failed5: false, reachedLv10: false, dailyMission: false };
+  p.trialsUsed = 0;
+  p.trialUsed = false;
+  // Keep optimumLayerUnlocked true since they've beaten the game
+  saveProgress(p);
+  return p;
+}
+
 // Resume Node calculation
 export function calculateResumeNode(level: number): number {
   if (level >= 50) return 49; // Game ends at 50, max resume is 49
