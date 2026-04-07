@@ -141,6 +141,11 @@ const Profile = () => {
             label="Best Combo"
             value={`x${(progress.bestCombo || 0).toFixed(1)}`}
           />
+          <StatTile
+            icon={<Shield className="w-5 h-5 text-accent" />}
+            label="Trials Played"
+            value={`${progress.trialsUsed || 0}`}
+          />
           {(progress.timesCompleted || 0) > 0 && (
             <div className="col-span-2">
               <StatTile
