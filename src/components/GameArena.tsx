@@ -5,6 +5,8 @@ import { GameState, WORLDS } from "@/game/types";
 import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, startBGM, stopBGM, resumeAudio } from "@/game/audio";
 import { updateAfterRun, loadProgress, markTrialConditionUsed, checkOptimumTrialEligibility, countEligibleTrials, updateResumeNode, calculateResumeNode, completeGame } from "@/game/playerProgress";
 import { updateDailyMissionsAfterRun, RunMissionStats } from "@/game/dailyMissions";
+import { findNewAchievements } from "@/game/achievements";
+import { toast } from "sonner";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 import OptimumTrialModal from "./OptimumTrialModal";
@@ -42,14 +44,21 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
       const gs = stateRef.current;
       const isVictory = gs.failureCause === '__VICTORY__';
       
+      const progressBefore = loadProgress();
       let progress;
       if (isVictory) {
-        // Victory: reset progress for fresh playthrough
         progress = completeGame(gs.score, Math.max(gs.bestCombo, gs.comboMultiplier));
       } else {
-        // Normal failure: track run stats
         progress = updateAfterRun(gs.level, gs.score, Math.max(gs.bestCombo, gs.comboMultiplier));
       }
+      
+      // Check for newly unlocked achievements
+      const newAchievements = findNewAchievements(progressBefore, progress);
+      newAchievements.forEach((a, i) => {
+        setTimeout(() => {
+          toast(`${a.emoji} ${a.name}`, { description: a.description, duration: 4000 });
+        }, 500 + i * 1200);
+      });
       
       // Update daily missions with run stats
       const missionStats: RunMissionStats = {
