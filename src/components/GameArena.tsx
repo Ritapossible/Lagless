@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import { createInitialState, updateGame, switchLane, jump, activateAbility } from "@/game/engine";
 import { renderGame } from "@/game/renderer";
 import { GameState, WORLDS } from "@/game/types";
-import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, startBGM, stopBGM, resumeAudio } from "@/game/audio";
+import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, playAchievement, startBGM, stopBGM, resumeAudio } from "@/game/audio";
 import { updateAfterRun, loadProgress, markTrialConditionUsed, checkOptimumTrialEligibility, countEligibleTrials, updateResumeNode, calculateResumeNode, completeGame } from "@/game/playerProgress";
 import { updateDailyMissionsAfterRun, RunMissionStats } from "@/game/dailyMissions";
 import { findNewAchievements } from "@/game/achievements";
@@ -56,6 +56,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
       const newAchievements = findNewAchievements(progressBefore, progress);
       newAchievements.forEach((a, i) => {
         setTimeout(() => {
+          playAchievement();
           toast(`${a.emoji} ${a.name}`, { description: a.description, duration: 4000 });
         }, 500 + i * 1200);
       });

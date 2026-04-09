@@ -142,6 +142,28 @@ export function playAbility() {
   osc2.stop(t + 0.4);
 }
 
+export function playAchievement() {
+  if (muted) return;
+  const ctx = getCtx();
+  const t = ctx.currentTime;
+  // Fanfare: rising triad + shimmer
+  const notes = [523, 659, 784, 1047, 1319]; // C5 E5 G5 C6 E6
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = i < 3 ? 'triangle' : 'sine';
+    osc.frequency.value = freq;
+    const start = t + i * 0.08;
+    gain.gain.setValueAtTime(0, start);
+    gain.gain.linearRampToValueAtTime(0.14, start + 0.04);
+    gain.gain.setValueAtTime(0.12, start + 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.5);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start + 0.5);
+  });
+}
+
 export function playLevelUp() {
   if (muted) return;
   const ctx = getCtx();
