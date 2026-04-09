@@ -1,5 +1,5 @@
 // Persistent player progress stored in localStorage
-import { isDailyRewardAvailable } from './dailyMissions';
+import { isDailyRewardAvailable, claimDailyReward } from './dailyMissions';
 
 export interface PlayerProgress {
   discordUsername: string;
@@ -108,6 +108,7 @@ export function markTrialConditionUsed(): void {
     used.reachedLv10 = true;
   } else if (isDailyRewardAvailable() && !used.dailyMission) {
     used.dailyMission = true;
+    claimDailyReward();
   }
   p.trialConditionUsed = used;
   p.trialsUsed = (p.trialsUsed || 0) + 1;
