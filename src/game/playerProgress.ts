@@ -108,6 +108,9 @@ export function markTrialConditionUsed(): void {
     used.reachedLv10 = true;
   } else if (isDailyRewardAvailable() && !used.dailyMission) {
     used.dailyMission = true;
+    // Also mark the daily reward as claimed so it can't trigger again
+    const { claimDailyReward } = require('./dailyMissions');
+    claimDailyReward();
   }
   p.trialConditionUsed = used;
   p.trialsUsed = (p.trialsUsed || 0) + 1;
