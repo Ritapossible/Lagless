@@ -4,7 +4,6 @@ export interface MissionDef {
   id: string;
   title: string;
   description: string;
-  icon: string;
   target: number;
 }
 
@@ -25,29 +24,25 @@ export const DAILY_MISSIONS: MissionDef[] = [
   {
     id: 'latency_above_60',
     title: 'Signal Stability',
-    description: 'Maintain latency above 60% for 20 seconds total',
-    icon: '📡',
+    description: 'Keep your latency budget above 60 ms for 20 seconds',
     target: 20, // 20 seconds
   },
   {
     id: 'correct_routing',
     title: 'Precision Router',
-    description: 'Make 10 correct routing decisions (collect pickups)',
-    icon: '🎯',
+    description: 'Collect 10 pickups',
     target: 10,
   },
   {
     id: 'use_relays',
     title: 'Relay Operator',
-    description: 'Use 5 relay nodes in a single run',
-    icon: '⚡',
+    description: 'Collect 5 relays in one run',
     target: 5,
   },
   {
     id: 'deploy_flexnodes',
-    title: 'Node Engineer',
-    description: 'Deploy 3 FlexNodes in a single run',
-    icon: '🛠',
+    title: 'Yard Builder',
+    description: 'Deploy 3 platforms in one run',
     target: 3,
   },
 ];
@@ -101,7 +96,7 @@ export interface RunMissionStats {
   latencyAbove60Seconds: number; // seconds spent above 60% latency
   pickupsCollected: number;      // correct routing decisions
   relaysUsed: number;
-  flexNodesDeployed: number;
+  platformsDeployed: number;
 }
 
 export function createRunMissionStats(): RunMissionStats {
@@ -109,7 +104,7 @@ export function createRunMissionStats(): RunMissionStats {
     latencyAbove60Seconds: 0,
     pickupsCollected: 0,
     relaysUsed: 0,
-    flexNodesDeployed: 0,
+    platformsDeployed: 0,
   };
 }
 
@@ -144,9 +139,9 @@ export function updateDailyMissionsAfterRun(stats: RunMissionStats): DailyMissio
     }
   }
 
-  // Mission 4: Deploy 3 FlexNodes (best single run)
+  // Mission 4: Deploy 3 platforms (best single run)
   if (!state.missions.deploy_flexnodes.completed) {
-    state.missions.deploy_flexnodes.current = Math.max(state.missions.deploy_flexnodes.current, stats.flexNodesDeployed);
+    state.missions.deploy_flexnodes.current = Math.max(state.missions.deploy_flexnodes.current, stats.platformsDeployed);
     if (state.missions.deploy_flexnodes.current >= 3) {
       state.missions.deploy_flexnodes.completed = true;
       state.missions.deploy_flexnodes.current = 3;
@@ -160,7 +155,7 @@ export function updateDailyMissionsAfterRun(stats: RunMissionStats): DailyMissio
   return state;
 }
 
-// Claim the daily reward (Optimum Layer trial)
+// Claim the daily reward (Clear Channel trial)
 export function claimDailyReward(): DailyMissionsState {
   const state = loadDailyMissions();
   state.rewardClaimed = true;

@@ -1,41 +1,61 @@
+import { useNavigate } from "react-router-dom";
+import { Play } from "lucide-react";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
-import HeroCharacter from "@/components/HeroCharacter";
-import PlayButton from "@/components/PlayButton";
-import spaceBg from "@/assets/space-bg.jpg";
+import ThreeCanvas from "@/components/ThreeCanvas";
+import { GameRenderer } from "@/game/three/GameRenderer";
+import { loadProgress } from "@/game/playerProgress";
+import { loadTopRuns } from "@/game/leaderboard";
+
+// Anchor Yards: sodium lamps match the amber accent
+const HERO_WORLD = 3;
+
+const createHero = (canvas: HTMLCanvasElement) => {
+  const view = new GameRenderer(canvas);
+  view.setCharacter("speed_warp");
+  return view;
+};
 
 const Index = () => {
+  const navigate = useNavigate();
+  const progress = loadProgress();
+  const best = loadTopRuns()[0];
+
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Background */}
-      <div className="fixed inset-0 -z-10">
-        <img
-          src={spaceBg}
-          alt=""
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-space-dark/40" />
-      </div>
+    <div className="relative flex min-h-[100svh] flex-col overflow-hidden">
+      <ThreeCanvas
+        create={createHero}
+        frame={(view, dt) => view.renderAttract(HERO_WORLD, dt)}
+        className="absolute inset-0 h-full w-full"
+      />
+      {/* Neutral scrim so the copy reads over the scene */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background via-background/60 to-transparent sm:bg-gradient-to-r sm:via-background/40" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
 
       <TopBar />
 
-      {/* Main content */}
-      <main className="flex flex-col items-center justify-center min-h-screen px-6 pb-24 pt-20">
-        {/* Character */}
-        <div className="mb-6 opacity-0 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-          <HeroCharacter />
-        </div>
-
-        {/* Title */}
-        <div className="mb-10 text-center opacity-0 animate-slide-up" style={{ animationDelay: "0.3s" }}>
-          <h1 className="font-display text-6xl sm:text-7xl font-black tracking-wider leading-[1.05] neon-glow">
-            Lagless
+      <main className="relative z-10 flex flex-1 items-start px-6 pb-24 pt-8 sm:items-center sm:px-8 sm:pb-16 sm:pt-0">
+        <div className="max-w-xl animate-enter">
+          <h1 className="text-[40px] font-medium leading-[1.04] tracking-[-0.03em] sm:text-[64px]">
+            Outrun the lag
           </h1>
-        </div>
-
-        {/* Play button */}
-        <div className="opacity-0 animate-slide-up" style={{ animationDelay: "0.5s" }}>
-          <PlayButton />
+          <p className="mt-4 max-w-md text-lg leading-7 text-subtle">
+            Pilot a hover craft down a failing network. Ride the relay lanes, jump the jams and keep your ping low for 50 levels.
+          </p>
+          <div className="mt-8 flex items-center gap-3">
+            <button onClick={() => navigate("/play")} className="btn-primary">
+              <Play className="h-4 w-4" strokeWidth={1.5} />
+              Play
+            </button>
+            <button onClick={() => navigate("/leaderboard")} className="btn-secondary">
+              Leaderboard
+            </button>
+          </div>
+          {best && (
+            <p className="mt-6 font-mono text-xs text-muted-foreground">
+              Best run {best.score.toLocaleString()} · level {progress.highestLevel || best.level}
+            </p>
+          )}
         </div>
       </main>
 

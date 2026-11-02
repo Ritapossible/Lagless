@@ -4,7 +4,7 @@
 
 ![Lagless](public/og-image.png)
 
-Lagless is a neon three-lane runner you play in the browser. You are a data packet crossing a failing network. Dodge congestion, jump spam and data storms, ride the blue relay lanes to refill your latency budget, and climb through five network worlds to level 50.
+Lagless is a 3D three-lane runner you play in the browser. You pilot a hover craft down a failing network: dodge congestion, jump crates, storm pylons and broken gates, ride the teal relay lanes to refill your latency budget, and climb through five worlds to level 50.
 
 ## How to play
 
@@ -14,30 +14,30 @@ Lagless is a neon three-lane runner you play in the browser. You are a data pack
 | Jump | `Space`, `↑` or `W` | Tap or swipe up |
 | Character ability | `E` or `Shift` | Ability button, bottom right |
 
-- **Latency budget** drains all the time, and fast on red congested lanes. Blue relay lanes and 💎 relay pickups refill it.
-- **Health** drops when you hit an obstacle or stay on a collapsing lane. 💚 pickups restore it.
-- **Combos** build while you route cleanly and multiply your score.
+- **Latency budget** is shown in ms. It drains all the time, and fast on red congested lanes. Teal relay lanes and teal diamonds refill it. At 0 ms the run times out.
+- **Hull** drops when you hit a hazard. Green crosses repair it.
+- **Combos** build while you ride relay lanes and multiply your score. Amber coins add score.
 
 ## What's in it
 
-- **Five worlds**, each with its own speed, hazards and rules: Congestion Zone, Fragmented Grid, Mesh Awakening, FlexNode Dominion and Optimum Layer, with boss levels at 25 and 39.
-- **Three runners**, each with an ability:
-  - Warp Runner: hyper speed and obstacle immunity
-  - Relay Master: auto-teleports across danger zones
-  - Node Engineer: deploys temporary safe platforms
-- **Resume nodes**, so a long run can restart from a checkpoint rather than level 1.
+- **Five worlds**, each with its own speed, hazards, palette and scenery: Congestion Zone, Fragmented Grid, Mesh Awakening, Anchor Yards and Clear Channel, with boss waves at levels 25 and 39.
+- **Three hover craft**, each with an ability:
+  - Dart, Overdrive: double speed and pass straight through hazards
+  - Hopper, Hop: jump 200 m ahead and refill 30 ms of latency
+  - Anchor, Clear lanes: turn every lane back to a fast lane
+- **Checkpoints** from level 10, so a long run can restart part-way rather than at level 1.
 - **Daily missions, achievements and a leaderboard** of your best runs on this device.
 - **Procedural audio**: music and sound effects are generated live with the Web Audio API. There are no audio files.
 
 ## Built with AI
 
 - **[Lovable](https://lovable.dev)** generated the original game from prompts: the engine, the canvas renderer, the UI and the progression systems.
-- **[Claude Code](https://claude.com/claude-code)** made the November 2026 update:
-  - the rename to Lagless
-  - guest play
-  - the leaderboard
+- **[Claude Code](https://claude.com/claude-code)** made the November 2026 updates:
+  - the Three.js renderer, the five 3D worlds and the three craft, all built in code from primitives
+  - the new runners and world names
+  - a full interface redesign, guided by the [unslop](https://github.com/heydamir/unslop) skill by Damir Sokolovsky (CC BY 4.0)
+  - the rename to Lagless, guest play and the leaderboard
   - this README and the social preview image
-  - lint and dependency cleanup
 
 ## Run it locally
 
@@ -60,7 +60,9 @@ It deploys to Vercel as a static site with no configuration. `vercel.json` alrea
 
 ## Tech
 
-React, TypeScript, Vite, Tailwind CSS and an HTML canvas renderer. Progress, missions and the leaderboard are saved in the browser's `localStorage`. There is no backend and no account.
+React, TypeScript, Vite, Tailwind CSS and [Three.js](https://threejs.org). The game engine (`src/game/engine.ts`) owns all the rules and state; the 3D view (`src/game/three/`) only reads that state each frame, so gameplay and rendering stay separate. There are no model or texture files: every craft, hazard and building is made from simple shapes with flat shading.
+
+Progress, missions and the leaderboard are saved in the browser's `localStorage`. There is no backend and no account.
 
 ---
 

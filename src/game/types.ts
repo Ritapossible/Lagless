@@ -94,7 +94,7 @@ export interface GameState {
   levelUpName: string;
   isBossLevel: boolean;
   relaysUsed: number;
-  flexNodesDeployed: number;
+  platformsDeployed: number;
   routingMistakes: number;
   bestCombo: number;
   failureCause: string;
@@ -134,17 +134,17 @@ export const WORLDS: WorldConfig[] = [
     relayRefillRate: 20, comboMultiplierCap: 3.5, visualChaosLevel: 0.3,
     mistakePenalty: 1.3, laneSpacing: 1.0,
   },
-  // Stage 4: FlexNode Dominion (L33-39) — stable, deployable nodes, high combo
+  // Stage 4: Anchor Yards (L33-39) — stable, deployable platforms, high combo
   {
-    name: 'FlexNode Dominion', baseSpeed: 6, obstacleDensity: 0.025, laneDisableChance: 0.001,
+    name: 'Anchor Yards', baseSpeed: 6, obstacleDensity: 0.025, laneDisableChance: 0.001,
     relayFrequency: 0.02, stabilityZones: true, bgHue: 200,
     latencyDrainRate: 0.7, latencyDrainCongested: 5, congestedLaneChance: 0.001,
     relayRefillRate: 18, comboMultiplierCap: 4, visualChaosLevel: 0.15,
     mistakePenalty: 1.5, laneSpacing: 1.05,
   },
-  // Stage 5: Optimum Layer (L40+) — ultra-fast, clean, skill-based
+  // Stage 5: Clear Channel (L40+) — ultra-fast, clean, skill-based
   {
-    name: 'Optimum Layer', baseSpeed: 8, obstacleDensity: 0.012, laneDisableChance: 0,
+    name: 'Clear Channel', baseSpeed: 8, obstacleDensity: 0.012, laneDisableChance: 0,
     relayFrequency: 0.012, stabilityZones: false, bgHue: 190,
     latencyDrainRate: 0.5, latencyDrainCongested: 4, congestedLaneChance: 0.0005,
     relayRefillRate: 12, comboMultiplierCap: 5, visualChaosLevel: 0.0,
@@ -153,7 +153,7 @@ export const WORLDS: WorldConfig[] = [
 ];
 
 export const CHARACTERS: Character[] = [
-  { name: 'Warp Runner', ability: 'speed_warp', abilityDuration: 3000, abilityCooldown: 10000 },
-  { name: 'Relay Master', ability: 'relay_chain', abilityDuration: 2000, abilityCooldown: 12000 },
-  { name: 'Node Engineer', ability: 'node_deploy', abilityDuration: 4000, abilityCooldown: 15000 },
+  { name: 'Dart', ability: 'speed_warp', abilityDuration: 3000, abilityCooldown: 10000 },
+  { name: 'Hopper', ability: 'relay_chain', abilityDuration: 2000, abilityCooldown: 12000 },
+  { name: 'Anchor', ability: 'node_deploy', abilityDuration: 4000, abilityCooldown: 15000 },
 ];

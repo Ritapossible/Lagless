@@ -1,55 +1,55 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Ink ramp, tinted toward night infrastructure. One amber accent from the signal lamps. */
 @layer base {
   :root {
-    --background: 225 30% 6%;
-    --foreground: 200 100% 95%;
+    --background: 228 29% 6%;      /* #0b0d14 page */
+    --foreground: 225 27% 95%;     /* #eef0f5 primary text */
 
-    --card: 225 35% 10%;
-    --card-foreground: 200 100% 95%;
+    --card: 224 24% 9%;            /* #11141c */
+    --card-foreground: 225 27% 95%;
 
-    --popover: 225 35% 10%;
-    --popover-foreground: 200 100% 95%;
+    --popover: 224 24% 9%;
+    --popover-foreground: 225 27% 95%;
 
-    --primary: 200 100% 50%;
-    --primary-foreground: 225 30% 6%;
+    --primary: 35 88% 59%;         /* #f2a33a amber */
+    --primary-foreground: 30 60% 8%;
 
-    --secondary: 225 30% 15%;
-    --secondary-foreground: 200 100% 90%;
+    --secondary: 223 21% 13%;      /* #1a1e28 raised */
+    --secondary-foreground: 225 27% 95%;
 
-    --muted: 225 25% 14%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 223 21% 13%;
+    --muted-foreground: 223 11% 53%; /* #7a8296 muted text */
 
-    --accent: 280 80% 55%;
-    --accent-foreground: 200 100% 95%;
+    --subtle: 223 13% 68%;         /* #a3a9b8 secondary text */
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: 223 21% 13%;
+    --accent-foreground: 225 27% 95%;
 
-    --border: 200 60% 25%;
-    --input: 225 30% 18%;
-    --ring: 200 100% 50%;
+    --destructive: 358 75% 59%;    /* #e5484d */
+    --destructive-foreground: 225 27% 95%;
+
+    --positive: 151 50% 53%;       /* #4cc38a */
+    --relay: 174 59% 45%;          /* #2fb6a8 relay lanes */
+
+    --border: 225 16% 14%;         /* primary text at ~8% on the page */
+    --input: 223 21% 13%;
+    --ring: 35 88% 59%;
 
     --radius: 0.75rem;
 
-    --neon-blue: 200 100% 50%;
-    --neon-cyan: 185 100% 55%;
-    --neon-magenta: 300 80% 55%;
-    --space-dark: 225 40% 4%;
-    --space-mid: 225 30% 8%;
-
-    --sidebar-background: 225 30% 8%;
-    --sidebar-foreground: 200 100% 90%;
-    --sidebar-primary: 200 100% 50%;
-    --sidebar-primary-foreground: 225 30% 6%;
-    --sidebar-accent: 225 30% 15%;
-    --sidebar-accent-foreground: 200 100% 90%;
-    --sidebar-border: 200 60% 20%;
-    --sidebar-ring: 200 100% 50%;
+    --sidebar-background: 224 24% 9%;
+    --sidebar-foreground: 225 27% 95%;
+    --sidebar-primary: 35 88% 59%;
+    --sidebar-primary-foreground: 30 60% 8%;
+    --sidebar-accent: 223 21% 13%;
+    --sidebar-accent-foreground: 225 27% 95%;
+    --sidebar-border: 225 16% 14%;
+    --sidebar-ring: 35 88% 59%;
   }
 }
 
@@ -59,67 +59,42 @@
   }
 
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply bg-background text-foreground antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
 }
 
-@layer utilities {
-  .font-display {
-    font-family: 'Orbitron', sans-serif;
+@layer components {
+  /* Dark buttons get a soft top highlight instead of a glow */
+  .btn-primary {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-[10px] bg-primary px-5 text-[15px] font-medium text-primary-foreground transition-[background-color,transform] duration-150 hover:bg-[#f5b257] active:scale-[0.98];
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
   }
 
-  .font-body {
-    font-family: 'Rajdhani', sans-serif;
+  .btn-secondary {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-[10px] border border-border bg-secondary px-5 text-[15px] font-medium text-foreground transition-[background-color,transform] duration-150 hover:bg-[#222735] active:scale-[0.98];
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
-  .neon-glow {
-    text-shadow: 
-      0 0 7px hsl(var(--neon-blue) / 0.8),
-      0 0 20px hsl(var(--neon-blue) / 0.4),
-      0 0 40px hsl(var(--neon-blue) / 0.2);
+  .btn-quiet {
+    @apply inline-flex h-9 items-center gap-2 rounded-lg px-2 text-sm text-subtle transition-colors duration-150 hover:text-foreground;
   }
 
-  .neon-box {
-    box-shadow:
-      0 0 8px hsl(var(--neon-blue) / 0.5),
-      0 0 20px hsl(var(--neon-blue) / 0.2),
-      inset 0 0 8px hsl(var(--neon-blue) / 0.1);
+  .surface {
+    @apply rounded-2xl border border-border bg-card;
   }
 
-  .neon-box-intense {
-    box-shadow:
-      0 0 10px hsl(var(--neon-blue) / 0.7),
-      0 0 30px hsl(var(--neon-blue) / 0.4),
-      0 0 60px hsl(var(--neon-blue) / 0.15),
-      inset 0 0 12px hsl(var(--neon-blue) / 0.15);
-  }
-
-  .circuit-line {
-    background: linear-gradient(90deg, transparent, hsl(var(--neon-blue) / 0.4), transparent);
-    height: 1px;
+  .keycap {
+    @apply inline-flex h-6 min-w-6 items-center justify-center rounded-[5px] border border-border bg-secondary px-1.5 font-mono text-xs text-subtle;
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.4);
   }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
-}
-
-@keyframes pulse-neon {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-@keyframes scan-line {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
-}
-
-@keyframes flicker {
-  0%, 100% { opacity: 1; }
-  92% { opacity: 1; }
-  93% { opacity: 0.3; }
-  94% { opacity: 1; }
-  96% { opacity: 0.7; }
-  97% { opacity: 1; }
+@keyframes enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }

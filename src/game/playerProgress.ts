@@ -14,7 +14,7 @@ export interface PlayerProgress {
     reachedLv10: boolean;
     dailyMission: boolean;
   };
-  optimumLayerUnlocked: boolean;
+  finalWorldUnlocked: boolean;
   lastResumeNodeLevel: number;
   timesCompleted: number;
 }
@@ -34,7 +34,7 @@ const DEFAULT_PROGRESS: PlayerProgress = {
     reachedLv10: false,
     dailyMission: false,
   },
-  optimumLayerUnlocked: false,
+  finalWorldUnlocked: false,
   lastResumeNodeLevel: 0,
   timesCompleted: 0,
 };
@@ -43,7 +43,13 @@ export function loadProgress(): PlayerProgress {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { ...DEFAULT_PROGRESS };
-    return { ...DEFAULT_PROGRESS, ...JSON.parse(raw) };
+    const saved = JSON.parse(raw);
+    // Saves from before the rename used optimumLayerUnlocked
+    if (saved.finalWorldUnlocked === undefined && saved.optimumLayerUnlocked !== undefined) {
+      saved.finalWorldUnlocked = saved.optimumLayerUnlocked;
+    }
+    delete saved.optimumLayerUnlocked;
+    return { ...DEFAULT_PROGRESS, ...saved };
   } catch {
     return { ...DEFAULT_PROGRESS };
   }
@@ -60,7 +66,7 @@ export function updateAfterRun(level: number, score?: number, combo?: number): P
   p.highestLevel = Math.max(p.highestLevel, cappedLevel);
   if (score !== undefined) p.highScore = Math.max(p.highScore, score);
   if (combo !== undefined) p.bestCombo = Math.max(p.bestCombo, combo);
-  if (level >= 40) p.optimumLayerUnlocked = true;
+  if (level >= 40) p.finalWorldUnlocked = true;
   // Also update resume node
   const resumeNode = calculateResumeNode(level);
   if (resumeNode > p.lastResumeNodeLevel) {
@@ -83,12 +89,12 @@ export function setDiscordUsername(username: string): void {
   saveProgress(p);
 }
 
-export function checkOptimumTrialEligibility(progress: PlayerProgress): boolean {
+export function checkTrialEligibility(progress: PlayerProgress): boolean {
   return countEligibleTrials(progress) > 0;
 }
 
 export function countEligibleTrials(progress: PlayerProgress): number {
-  if (progress.optimumLayerUnlocked) return 0;
+  if (progress.finalWorldUnlocked) return 0;
   const used = progress.trialConditionUsed || { failed5: false, reachedLv10: false, dailyMission: false };
   let count = 0;
   if (progress.totalRuns >= 5 && !used.failed5) count++;
@@ -127,7 +133,7 @@ export function completeGame(score: number, combo: number): PlayerProgress {
   p.trialConditionUsed = { failed5: false, reachedLv10: false, dailyMission: false };
   p.trialsUsed = 0;
   p.trialUsed = false;
-  // Keep optimumLayerUnlocked true since they've beaten the game
+  // Keep the final world unlocked since they've beaten the game
   saveProgress(p);
   return p;
 }
@@ -135,7 +141,7 @@ export function completeGame(score: number, combo: number): PlayerProgress {
 // Resume Node calculation
 export function calculateResumeNode(level: number): number {
   if (level >= 50) return 49; // Game ends at 50, max resume is 49
-  if (level >= 40) return level; // Optimum Layer: retry from failed level
+  if (level >= 40) return level; // Clear Channel: retry from failed level
   if (level >= 20) {
     // Every 2 levels: 20, 22, 24, ...
     return Math.floor(level / 2) * 2;

@@ -1,19 +1,21 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import { createInitialState, updateGame, switchLane, jump, activateAbility } from "@/game/engine";
-import { renderGame } from "@/game/renderer";
+import { GameRenderer } from "@/game/three/GameRenderer";
 import { GameState, WORLDS } from "@/game/types";
 import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, playAchievement, startBGM, stopBGM, resumeAudio } from "@/game/audio";
-import { updateAfterRun, loadProgress, markTrialConditionUsed, checkOptimumTrialEligibility, countEligibleTrials, updateResumeNode, calculateResumeNode, completeGame } from "@/game/playerProgress";
+import { updateAfterRun, loadProgress, markTrialConditionUsed, countEligibleTrials, updateResumeNode, calculateResumeNode, completeGame } from "@/game/playerProgress";
 import { updateDailyMissionsAfterRun, RunMissionStats } from "@/game/dailyMissions";
 import { findNewAchievements } from "@/game/achievements";
 import { toast } from "sonner";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
-import OptimumTrialModal from "./OptimumTrialModal";
+import TrialModal from "./TrialModal";
+import ScreenHeader from "./ScreenHeader";
 import { recordRun } from "@/game/leaderboard";
 
 const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = false }: { onExit: () => void; onBack?: () => void; character?: import("@/game/types").Character; startLevel?: number; startAsTrial?: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rendererRef = useRef<GameRenderer | null>(null);
   const stateRef = useRef<GameState>(createInitialState(character, startAsTrial ? 40 : startLevel));
   const animRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
@@ -63,7 +65,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
         date: new Date().toISOString(),
       });
       if (rank > 0) {
-        toast(`🏆 #${rank} on your leaderboard`, { description: `${Math.floor(gs.score).toLocaleString()} points`, duration: 3000 });
+        toast(`#${rank} on your leaderboard`, { description: `${Math.floor(gs.score).toLocaleString()} points`, duration: 3000 });
       }
 
       // Check for newly unlocked achievements
@@ -71,7 +73,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
       newAchievements.forEach((a, i) => {
         setTimeout(() => {
           playAchievement();
-          toast(`${a.emoji} ${a.name}`, { description: a.description, duration: 4000 });
+          toast(`Achievement · ${a.name}`, { description: a.description, duration: 4000 });
         }, 500 + i * 1200);
       });
       
@@ -80,7 +82,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
         latencyAbove60Seconds: gs.latencyAbove60Time,
         pickupsCollected: gs.pickupsCollected,
         relaysUsed: gs.relaysUsed,
-        flexNodesDeployed: gs.flexNodesDeployed,
+        platformsDeployed: gs.platformsDeployed,
       };
       updateDailyMissionsAfterRun(missionStats);
       
@@ -104,9 +106,9 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     }
   }, [showGameOver, trialChecked]);
 
-  const startGameLoop = useCallback((canvas: HTMLCanvasElement) => {
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  const startGameLoop = useCallback(() => {
+    const view = rendererRef.current;
+    if (!view) return;
     let hudCounter = 0;
 
     const loop = (time: number) => {
@@ -123,9 +125,9 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
             ...stateRef.current,
             gameOver: true,
             running: false,
-            failureCause: "Preview Signal Lost",
+            failureCause: "Trial time up",
             levelUpDisplay: 2.5,
-            levelUpName: "⏱ TRIAL ENDED",
+            levelUpName: "Trial over",
             audioEvents: { ...stateRef.current.audioEvents, gameOver: true },
           };
           trialActiveRef.current = false;
@@ -133,10 +135,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
           playGameOver();
           stopBGM();
           // Render final frame, then delay showing game over screen
-          ctx.setTransform(1, 0, 0, 1, 0, 0);
-          const dpr2 = window.devicePixelRatio || 1;
-          ctx.scale(dpr2, dpr2);
-          renderGame(ctx, stateRef.current, canvas.clientWidth, canvas.clientHeight);
+          view.render(stateRef.current, 0);
           setHudState({ ...stateRef.current });
           // Show game over after a short delay so player sees the banner
           setTimeout(() => {
@@ -164,7 +163,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
               ...stateRef.current,
               floatingTexts: [
                 ...stateRef.current.floatingTexts,
-                { text: `⚡ Resume Node L${updated.lastResumeNodeLevel}`, x: 0.5, y: 0.35, life: 2.5, color: '#00ff88' },
+                { text: `Checkpoint saved · Lv ${updated.lastResumeNodeLevel}`, x: 0.5, y: 0.35, life: 2.5, color: '#4cc38a' },
               ],
             };
           }
@@ -172,10 +171,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
       }
       if (ae.gameOver) { playGameOver(); stopBGM(); }
 
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      const dpr = window.devicePixelRatio || 1;
-      ctx.scale(dpr, dpr);
-      renderGame(ctx, stateRef.current, canvas.clientWidth, canvas.clientHeight);
+      view.render(stateRef.current, dt);
 
       hudCounter++;
       if (hudCounter % 4 === 0) {
@@ -198,23 +194,20 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const view = new GameRenderer(canvas);
+    rendererRef.current = view;
 
-    const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = canvas.clientWidth * dpr;
-      canvas.height = canvas.clientHeight * dpr;
-      ctx.scale(dpr, dpr);
-    };
+    const resize = () => view.resize(canvas.clientWidth, canvas.clientHeight);
     resize();
     window.addEventListener("resize", resize);
 
-    startGameLoop(canvas);
+    startGameLoop();
 
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener("resize", resize);
+      view.dispose();
+      rendererRef.current = null;
     };
   }, [startGameLoop]);
 
@@ -291,8 +284,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     setTrialChecked(false);
     setHudState(stateRef.current);
     startBGM();
-    const canvas = canvasRef.current;
-    if (canvas) startGameLoop(canvas);
+    startGameLoop();
   }, [startGameLoop, startLevel]);
 
   const handleStartTrial = useCallback(() => {
@@ -304,7 +296,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     trialRunRef.current = true;
     trialTimerRef.current = 60; // 60-second trial
 
-    // Create a fresh state starting at Level 40 (Optimum Layer)
+    // Create a fresh state starting at Level 40 (Clear Channel)
     stateRef.current = createInitialState(characterRef.current, 40);
     stateRef.current.running = true;
     lastTimeRef.current = 0;
@@ -313,8 +305,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     setTrialChecked(false);
     setHudState(stateRef.current);
     startBGM();
-    const canvas = canvasRef.current;
-    if (canvas) startGameLoop(canvas);
+    startGameLoop();
   }, [startGameLoop]);
 
   const handleDeclineTrial = useCallback(() => {
@@ -325,7 +316,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     <div className="fixed inset-0 z-50 bg-background">
       <canvas
         ref={canvasRef}
-        className="w-full h-full touch-none"
+        className="h-full w-full touch-none"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       />
@@ -341,116 +332,68 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
         <GameOverScreen state={hudState} onRestart={handleRestart} onExit={onExit} />
       )}
       {showTrialModal && (
-        <OptimumTrialModal onAccept={handleStartTrial} onDecline={handleDeclineTrial} trialsAvailable={remainingTrials} />
+        <TrialModal onAccept={handleStartTrial} onDecline={handleDeclineTrial} trialsAvailable={remainingTrials} />
       )}
       {hudState.paused && !showGameOver && !showInstructions && (
-        <div className="absolute inset-0 bg-space-dark/80 flex flex-col items-center justify-center z-20">
-          <h2 className="font-display text-3xl font-bold neon-glow mb-8">Paused</h2>
-          <button
-            onClick={handlePause}
-            className="px-8 py-3 font-display text-lg tracking-widest uppercase border-2 border-primary rounded-xl bg-primary/10 neon-box active:scale-95 transition-transform mb-4"
-          >
-            Resume
-          </button>
-          <button
-            onClick={onExit}
-            className="px-8 py-3 font-display text-sm tracking-widest uppercase text-muted-foreground active:scale-95 transition-transform"
-          >
-            Exit
-          </button>
-        </div>
-      )}
-      {showInstructions && (
-        <div className="absolute inset-0 bg-space-dark/95 backdrop-blur-sm flex flex-col items-center z-30 px-4 animate-fade-in overflow-y-auto py-10">
-          <button
-            onClick={onBack || onExit}
-            className="self-start text-muted-foreground font-display text-xs tracking-widest uppercase active:scale-95 transition-transform mb-4"
-          >
-            ← Back
-          </button>
-          <h2 className="font-display text-2xl font-bold neon-glow mb-1">How to Play</h2>
-          <p className="text-muted-foreground text-xs mb-4">Route packets through the network</p>
-          <div className="max-w-sm w-full space-y-2 text-sm text-muted-foreground">
-            <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
-              <span className="text-lg">👆</span>
-              <div>
-                <p className="text-foreground font-semibold text-sm">Swipe Left / Right</p>
-                <p className="text-xs">Switch between 3 network lanes. Blue relay lanes boost combos and refill latency.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
-              <span className="text-lg">⬆️</span>
-              <div>
-                <p className="text-foreground font-semibold text-sm">Tap / Swipe Up</p>
-                <p className="text-xs">Jump over spam packets, data storms, and failure nodes.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
-              <span className="text-lg">⚡</span>
-              <div>
-                <p className="text-foreground font-semibold text-sm">Ability (Bottom-Right)</p>
-                <p className="text-xs">Activate your character's unique skill. Speed Warp, Relay Chain, or Node Deploy.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-destructive/5 border border-destructive/20 rounded-xl p-3">
-              <span className="text-lg">🔴</span>
-              <div>
-                <p className="text-foreground font-semibold text-sm">Avoid Red Lanes</p>
-                <p className="text-xs">Congested lanes drain latency fast. Collapsing lanes deal direct damage to packet integrity.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-accent/5 border border-accent/20 rounded-xl p-3">
-              <span className="text-lg">💎</span>
-              <div>
-                <p className="text-foreground font-semibold text-sm">Collect Pickups</p>
-                <p className="text-xs">💎 Relay diamonds refill latency. 💚 Green pickups restore health. ⭐ Score pickups boost points.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
-              <span className="text-lg">📡</span>
-              <div>
-                <p className="text-foreground font-semibold text-sm">Resume Nodes</p>
-                <p className="text-xs">L1–9: No saves. L10–19: Nodes at L10, 12, 15, 18. L20–39: Every 2 levels. L40–49: Retry from failed level.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
-              <span className="text-lg">🌐</span>
-              <div>
-                <p className="text-foreground font-semibold text-sm">5 Network Stages</p>
-                <p className="text-xs">Congestion Zone (L1–12) → Fragmented Grid (L13–25) → Mesh Awakening (L26–32) → FlexNode Dominion (L33–39) → Optimum Layer (L40–50).</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-3">
-              <span className="text-lg">⚠️</span>
-              <div>
-                <p className="text-foreground font-semibold text-sm">Boss Waves</p>
-                <p className="text-xs">Levels 25 and 39 trigger boss waves with increased obstacles, lane instability, and routing pressure.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-3">
-              <span className="text-lg">🏁</span>
-              <div>
-                <p className="text-foreground font-semibold text-sm">Victory at Level 50</p>
-                <p className="text-xs">Synchronize the Core Network to complete the game and unlock Endless Routing Mode.</p>
-              </div>
-            </div>
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/80 px-6 backdrop-blur-sm">
+          <div className="w-full max-w-xs animate-enter text-center">
+            <h2 className="text-[28px] font-medium">Paused</h2>
+            <p className="mt-2 font-mono text-sm text-subtle">Lv {hudState.level} · {Math.floor(hudState.score).toLocaleString()}</p>
+            <button onClick={handlePause} className="btn-primary mt-8 w-full">Resume</button>
+            <button onClick={onExit} className="btn-secondary mt-3 w-full">Quit to home</button>
           </div>
-          <button
-            onClick={() => setShowInstructions(false)}
-            className="mt-5 px-10 py-3 font-display text-lg tracking-widest uppercase border-2 border-primary rounded-xl bg-primary/10 neon-box active:scale-95 transition-transform"
-          >
-            Start
-          </button>
-          <button
-            onClick={() => setShowInstructions(false)}
-            className="mt-2 px-6 py-2 font-display text-xs tracking-widest uppercase text-muted-foreground active:scale-95 transition-transform"
-          >
-            Skip
-          </button>
         </div>
       )}
+      {showInstructions && <HowToPlay onStart={() => setShowInstructions(false)} onBack={onBack || onExit} />}
     </div>
   );
 };
+
+const CONTROLS = [
+  { action: "Switch lane", keys: ["←", "→"], touch: "Swipe left or right" },
+  { action: "Jump", keys: ["Space"], touch: "Tap or swipe up" },
+  { action: "Ability", keys: ["E"], touch: "Button, bottom right" },
+];
+
+const RULES = [
+  { title: "Keep your latency budget", text: "It drains every second and fast on red lanes. At 0 ms the run times out." },
+  { title: "Ride the teal lanes", text: "Relay lanes refill the budget and build your combo. Teal diamonds refill it too." },
+  { title: "Jump the hazards", text: "Crates, storm pylons and broken gates cost hull. Green crosses repair it, amber coins add score." },
+  { title: "Five worlds, 50 levels", text: "Boss waves at 25 and 39. Checkpoints save from level 10, so a long run is never lost." },
+];
+
+const HowToPlay = ({ onStart, onBack }: { onStart: () => void; onBack: () => void }) => (
+  <div className="absolute inset-0 z-30 overflow-y-auto bg-background/85 px-6 backdrop-blur-sm sm:px-8">
+    <ScreenHeader title="How to play" onBack={onBack} />
+    <div className="mx-auto grid max-w-4xl gap-8 pb-10 pt-4 md:grid-cols-2 animate-enter">
+      <section>
+        <h2 className="text-sm text-muted-foreground">Controls</h2>
+        <dl className="mt-3 divide-y divide-border rounded-2xl border border-border bg-card">
+          {CONTROLS.map(({ action, keys, touch }) => (
+            <div key={action} className="flex h-14 items-center gap-4 px-5">
+              <dt className="flex-1 text-[15px]">{action}</dt>
+              <dd className="hidden gap-1 sm:flex">{keys.map(k => <kbd key={k} className="keycap">{k}</kbd>)}</dd>
+              <dd className="text-sm text-subtle sm:hidden">{touch}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+      <section>
+        <h2 className="text-sm text-muted-foreground">Rules</h2>
+        <ul className="mt-3 space-y-4">
+          {RULES.map(({ title, text }) => (
+            <li key={title}>
+              <p className="text-[15px] font-medium">{title}</p>
+              <p className="mt-1 text-sm leading-5 text-subtle">{text}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <div className="md:col-span-2">
+        <button onClick={onStart} className="btn-primary w-full sm:w-auto sm:px-10">Start run</button>
+      </div>
+    </div>
+  </div>
+);
 
 export default GameArena;
