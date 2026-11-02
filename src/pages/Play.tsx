@@ -4,20 +4,20 @@ import { Character } from "@/game/types";
 import { loadProgress } from "@/game/playerProgress";
 import CharacterSelect from "@/components/CharacterSelect";
 import GameArena from "@/components/GameArena";
-import DiscordUsernameInput from "@/components/DiscordUsernameInput";
+import UsernameInput from "@/components/UsernameInput";
 import StartRunModal from "@/components/StartRunModal";
 
 const Play = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const startTrial = !!(location.state as { startTrial?: boolean } | null)?.startTrial;
-  const [hasUsername, setHasUsername] = useState(() => !!loadProgress().discordUsername);
+  const [hasUsername, setHasUsername] = useState(() => !!loadProgress().username);
   const [selectedChar, setSelectedChar] = useState<Character | null>(null);
   const [startLevel, setStartLevel] = useState<number | null>(startTrial ? 40 : null);
   const [isTrial] = useState(startTrial);
 
   if (!hasUsername) {
-    return <DiscordUsernameInput onContinue={() => setHasUsername(true)} />;
+    return <UsernameInput onContinue={() => setHasUsername(true)} />;
   }
 
   if (!selectedChar) {

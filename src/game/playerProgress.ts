@@ -2,7 +2,7 @@
 import { isDailyRewardAvailable, claimDailyReward } from './dailyMissions';
 
 export interface PlayerProgress {
-  discordUsername: string;
+  username: string;
   totalRuns: number;
   highestLevel: number;
   highScore: number;
@@ -22,7 +22,7 @@ export interface PlayerProgress {
 const STORAGE_KEY = 'latency-escape-progress';
 
 const DEFAULT_PROGRESS: PlayerProgress = {
-  discordUsername: '',
+  username: '',
   totalRuns: 0,
   highestLevel: 0,
   highScore: 0,
@@ -49,6 +49,11 @@ export function loadProgress(): PlayerProgress {
       saved.finalWorldUnlocked = saved.optimumLayerUnlocked;
     }
     delete saved.optimumLayerUnlocked;
+    // ...and discordUsername before names stopped being tied to Discord
+    if (saved.username === undefined && typeof saved.discordUsername === 'string') {
+      saved.username = saved.discordUsername;
+    }
+    delete saved.discordUsername;
     return { ...DEFAULT_PROGRESS, ...saved };
   } catch {
     return { ...DEFAULT_PROGRESS };
@@ -83,9 +88,9 @@ export function markTrialUsed(): void {
   saveProgress(p);
 }
 
-export function setDiscordUsername(username: string): void {
+export function setUsername(username: string): void {
   const p = loadProgress();
-  p.discordUsername = username;
+  p.username = username;
   saveProgress(p);
 }
 

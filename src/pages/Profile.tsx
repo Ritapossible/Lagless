@@ -12,16 +12,16 @@ const Profile = () => {
   const navigate = useNavigate();
   const [progress, setProgress] = useState<PlayerProgress>(() => loadProgress());
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(progress.discordUsername);
+  const [draft, setDraft] = useState(progress.username);
   const [error, setError] = useState("");
 
   const handleSave = () => {
     const trimmed = draft.trim();
     if (!trimmed) {
-      setError("Name can't be empty");
+      setError("Username can't be empty");
       return;
     }
-    const updated = { ...progress, discordUsername: trimmed };
+    const updated = { ...progress, username: trimmed };
     saveProgress(updated);
     setProgress(updated);
     setEditing(false);
@@ -29,12 +29,12 @@ const Profile = () => {
   };
 
   const handleCancel = () => {
-    setDraft(progress.discordUsername);
+    setDraft(progress.username);
     setEditing(false);
     setError("");
   };
 
-  const name = progress.discordUsername || "Guest";
+  const name = progress.username || "Guest";
   const toFinal = Math.min(progress.highestLevel / FINAL_WORLD_LEVEL, 1);
 
   return (
@@ -52,7 +52,8 @@ const Profile = () => {
                 <input
                   type="text"
                   value={draft}
-                  aria-label="Pilot name"
+                  aria-label="Username"
+                  maxLength={20}
                   onChange={(e) => { setDraft(e.target.value); setError(""); }}
                   className="h-10 w-full max-w-xs rounded-[10px] border border-border bg-secondary px-3 text-[15px] focus:border-primary/60 focus:outline-none"
                   onKeyDown={(e) => e.key === "Enter" && handleSave()}
@@ -68,9 +69,9 @@ const Profile = () => {
               {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <h2 className="text-[28px] font-medium leading-none">{name}</h2>
-              <button onClick={() => { setDraft(progress.discordUsername); setEditing(true); }} aria-label="Edit name" className="btn-quiet">
+            <div className="flex min-w-0 items-center gap-2">
+              <h2 className="truncate text-[22px] font-medium leading-tight sm:text-[28px]">{name}</h2>
+              <button onClick={() => { setDraft(progress.username); setEditing(true); }} aria-label="Edit name" className="btn-quiet shrink-0">
                 <Pencil className="h-4 w-4" strokeWidth={1.5} />
               </button>
             </div>
