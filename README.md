@@ -2,6 +2,8 @@
 
 **Outrun the lag. Route the packet.**
 
+**Play it: [lagless-inky.vercel.app](https://lagless-inky.vercel.app)**
+
 ![Lagless](public/og-image.png)
 
 Lagless is a 3D three-lane runner you play in the browser. You pilot a hover craft down a failing network: dodge congestion, jump crates, storm pylons and broken gates, ride the teal relay lanes to refill your latency budget, and climb through five worlds to level 50.
