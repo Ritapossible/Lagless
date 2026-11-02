@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Character } from "@/game/types";
-import { loadProgress } from "@/game/playerProgress";
+import { loadProgress, clearPendingTrial } from "@/game/playerProgress";
 import CharacterSelect from "@/components/CharacterSelect";
 import GameArena from "@/components/GameArena";
 import UsernameInput from "@/components/UsernameInput";
@@ -9,8 +9,11 @@ import StartRunModal from "@/components/StartRunModal";
 
 const Play = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const startTrial = !!(location.state as { startTrial?: boolean } | null)?.startTrial;
+  // A claimed daily trial is spent the moment it starts, so a refresh or the back button can't replay it
+  const [startTrial] = useState(() => loadProgress().pendingTrial);
+  useEffect(() => {
+    if (startTrial) clearPendingTrial();
+  }, [startTrial]);
   const [hasUsername, setHasUsername] = useState(() => !!loadProgress().username);
   const [selectedChar, setSelectedChar] = useState<Character | null>(null);
   const [startLevel, setStartLevel] = useState<number | null>(startTrial ? 40 : null);

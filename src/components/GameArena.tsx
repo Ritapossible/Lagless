@@ -3,7 +3,7 @@ import { createInitialState, updateGame, switchLane, jump, activateAbility } fro
 import { GameRenderer } from "@/game/three/GameRenderer";
 import { GameState, WORLDS } from "@/game/types";
 import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, playAchievement, startBGM, stopBGM, resumeAudio } from "@/game/audio";
-import { updateAfterRun, loadProgress, markTrialConditionUsed, countEligibleTrials, updateResumeNode, calculateResumeNode, completeGame } from "@/game/playerProgress";
+import { updateAfterRun, loadProgress, retryLevel, TRIAL_SECONDS, markTrialConditionUsed, countEligibleTrials, updateResumeNode, calculateResumeNode, completeGame } from "@/game/playerProgress";
 import { updateDailyMissionsAfterRun, RunMissionStats } from "@/game/dailyMissions";
 import { findNewAchievements } from "@/game/achievements";
 import { toast } from "sonner";
@@ -30,7 +30,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
   const characterRef = useRef(character);
   const trialActiveRef = useRef(startAsTrial);
   const trialRunRef = useRef(startAsTrial); // tracks if current/last run was a trial
-  const trialTimerRef = useRef(startAsTrial ? 60 : 0);
+  const trialTimerRef = useRef(startAsTrial ? TRIAL_SECONDS : 0);
   // Relay coaching for new players: seconds flown this run, and whether this player still needs it
   const runTimeRef = useRef(0);
   const coachRef = useRef(!startAsTrial && isNewPlayer(loadProgress().totalRuns));
@@ -277,12 +277,20 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     setHudState({ ...stateRef.current });
   }, []);
 
+  // Retry resumes from the checkpoint this run passed. After a trial, the player goes back to their own
+  // progress: a trial previews Clear Channel, it doesn't unlock it.
+  const nextRunLevel = useCallback(() => {
+    const gs = stateRef.current;
+    if (gs.failureCause === '__VICTORY__') return 1;
+    if (trialRunRef.current) return loadProgress().lastResumeNodeLevel || 1;
+    return retryLevel(gs.level, startLevel);
+  }, [startLevel]);
+
   const handleRestart = useCallback(() => {
+    const restartLevel = nextRunLevel();
     trialActiveRef.current = false;
     trialRunRef.current = false;
     trialTimerRef.current = 0;
-    // After victory, always restart from level 1
-    const restartLevel = stateRef.current.failureCause === '__VICTORY__' ? 1 : startLevel;
     stateRef.current = createInitialState(characterRef.current, restartLevel);
     stateRef.current.running = true;
     lastTimeRef.current = 0;
@@ -293,7 +301,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     setHudState(stateRef.current);
     startBGM();
     startGameLoop();
-  }, [startGameLoop, startLevel]);
+  }, [startGameLoop, nextRunLevel]);
 
   const handleStartTrial = useCallback(() => {
     setShowTrialModal(false);
@@ -302,7 +310,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     setRemainingTrials(prev => prev - 1);
     trialActiveRef.current = true;
     trialRunRef.current = true;
-    trialTimerRef.current = 60; // 60-second trial
+    trialTimerRef.current = TRIAL_SECONDS;
 
     // Create a fresh state starting at Level 40 (Clear Channel)
     stateRef.current = createInitialState(characterRef.current, 40);
@@ -340,7 +348,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
         />
       )}
       {showGameOver && !showTrialModal && (
-        <GameOverScreen state={hudState} onRestart={handleRestart} onExit={onExit} />
+        <GameOverScreen state={hudState} retryLevel={nextRunLevel()} onRestart={handleRestart} onExit={onExit} />
       )}
       {showTrialModal && (
         <TrialModal onAccept={handleStartTrial} onDecline={handleDeclineTrial} trialsAvailable={remainingTrials} />

@@ -4,13 +4,15 @@ import BuiltByFooter from "./BuiltByFooter";
 
 interface GameOverProps {
   state: GameState;
+  /** The level Retry starts from */
+  retryLevel: number;
   onRestart: () => void;
   onExit: () => void;
 }
 
 const fmt = (n: number) => Math.floor(n).toLocaleString();
 
-const GameOverScreen = ({ state, onRestart, onExit }: GameOverProps) => {
+const GameOverScreen = ({ state, retryLevel, onRestart, onExit }: GameOverProps) => {
   const isVictory = state.failureCause === '__VICTORY__';
   const progressInLevel = ((state.distance % 500) / 500) * 100;
   const bestCombo = Math.max(state.bestCombo, state.comboMultiplier);
@@ -57,7 +59,7 @@ const GameOverScreen = ({ state, onRestart, onExit }: GameOverProps) => {
         <div className="mt-8 flex gap-3">
           <button onClick={onRestart} className="btn-primary flex-1">
             <RotateCcw className="h-4 w-4" strokeWidth={1.5} />
-            {isVictory ? "Fly again" : "Retry"}
+            {isVictory ? "Fly again" : retryLevel > 1 ? `Retry from Lv ${retryLevel}` : "Retry"}
           </button>
           <button onClick={onExit} className="btn-secondary">
             Home

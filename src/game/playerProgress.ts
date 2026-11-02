@@ -1,6 +1,9 @@
 // Persistent player progress stored in localStorage
 import { isDailyRewardAvailable, claimDailyReward } from './dailyMissions';
 
+/** A trial is a short preview of Clear Channel, the final world, to show players where they are heading */
+export const TRIAL_SECONDS = 120;
+
 export interface PlayerProgress {
   username: string;
   totalRuns: number;
@@ -17,6 +20,8 @@ export interface PlayerProgress {
   finalWorldUnlocked: boolean;
   lastResumeNodeLevel: number;
   timesCompleted: number;
+  /** Set when the daily-mission trial is claimed, cleared when that trial starts: one claim, one trial */
+  pendingTrial: boolean;
 }
 
 const STORAGE_KEY = 'latency-escape-progress';
@@ -37,6 +42,7 @@ const DEFAULT_PROGRESS: PlayerProgress = {
   finalWorldUnlocked: false,
   lastResumeNodeLevel: 0,
   timesCompleted: 0,
+  pendingTrial: false,
 };
 
 export function loadProgress(): PlayerProgress {
@@ -144,6 +150,30 @@ export function completeGame(score: number, combo: number): PlayerProgress {
 }
 
 // Resume Node calculation
+// Daily missions reward: spend today's reward on one trial. Returns false if there is nothing to claim.
+export function claimDailyTrial(): boolean {
+  if (!isDailyRewardAvailable()) return false;
+  claimDailyReward();
+  const p = loadProgress();
+  p.trialConditionUsed = { ...p.trialConditionUsed, dailyMission: true };
+  p.trialsUsed = (p.trialsUsed || 0) + 1;
+  p.pendingTrial = true;
+  saveProgress(p);
+  return true;
+}
+
+export function clearPendingTrial(): void {
+  const p = loadProgress();
+  p.pendingTrial = false;
+  saveProgress(p);
+}
+
+// Where Retry starts: the checkpoint this run passed, if any, otherwise where the run began.
+// From level 10 a run never sends the player back to level 1.
+export function retryLevel(levelReached: number, startLevel: number): number {
+  return Math.min(Math.max(startLevel, calculateResumeNode(levelReached)), 49);
+}
+
 export function calculateResumeNode(level: number): number {
   if (level >= 50) return 49; // Game ends at 50, max resume is 49
   if (level >= 40) return level; // Clear Channel: retry from failed level

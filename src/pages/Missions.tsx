@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
 import BuiltByFooter from "@/components/BuiltByFooter";
 import ScreenHeader from "@/components/ScreenHeader";
-import { loadDailyMissions, DAILY_MISSIONS, DailyMissionsState, claimDailyReward } from "@/game/dailyMissions";
+import { loadDailyMissions, DAILY_MISSIONS, DailyMissionsState } from "@/game/dailyMissions";
+import { claimDailyTrial, TRIAL_SECONDS } from "@/game/playerProgress";
+
+const trialLength = `${TRIAL_SECONDS / 60} minute`;
 
 // Missions are keyed by the UTC date (see dailyMissions.ts), so count down to UTC midnight
 function untilMidnight() {
@@ -69,21 +72,19 @@ const Missions = () => {
             <p className="text-[15px] font-medium">Daily reward</p>
             <p className="mt-1 text-sm text-subtle">
               {state.rewardClaimed
-                ? "Claimed. Your Clear Channel trial is ready."
-                : "Finish all four for a 60 second trial in Clear Channel, the final world."}
+                ? "You've flown today's trial. New missions and a new trial at 00:00 UTC."
+                : state.allCompleted
+                  ? `A ${trialLength} preview of Clear Channel, the final world. One go, so make it count.`
+                  : `Finish all four to unlock a ${trialLength} preview of Clear Channel, the final world.`}
             </p>
           </div>
-          {state.rewardClaimed ? (
-            <button onClick={() => navigate("/play", { state: { startTrial: true } })} className="btn-primary">
-              Start trial
-            </button>
-          ) : (
+          {/* The trial exists only between finishing the missions and flying it */}
+          {state.allCompleted && !state.rewardClaimed && (
             <button
-              onClick={() => setState(claimDailyReward())}
-              disabled={!state.allCompleted}
-              className="btn-primary disabled:pointer-events-none disabled:bg-secondary disabled:text-muted-foreground disabled:shadow-none"
+              onClick={() => { if (claimDailyTrial()) navigate("/play"); else setState(loadDailyMissions()); }}
+              className="btn-primary"
             >
-              Claim reward
+              Start trial
             </button>
           )}
         </section>
