@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Heart, Zap, Timer, Volume2, VolumeX } from "lucide-react";
-import { GameState } from "@/game/types";
+import { Pause, Volume2, VolumeX, Zap, FastForward, Layers } from "lucide-react";
+import { AbilityType, GameState } from "@/game/types";
 import { toggleMute, isMuted } from "@/game/audio";
-import gmumIcon from "@/assets/gmum-character.jpg";
 
 interface GameHUDProps {
   state: GameState;
@@ -11,202 +10,148 @@ interface GameHUDProps {
   trialTimer?: number;
 }
 
-function formatScore(n: number): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-  if (n >= 10_000) return (n / 1_000).toFixed(1) + 'K';
-  return n.toLocaleString();
+const ABILITY_ICONS: Record<AbilityType, typeof Zap> = {
+  speed_warp: Zap,
+  relay_chain: FastForward,
+  node_deploy: Layers,
+};
+
+// Latency budget is measured in ms; colour shifts as it runs out
+function budgetTone(percent: number) {
+  if (percent > 50) return { text: "text-foreground", bar: "bg-relay" };
+  if (percent > 25) return { text: "text-primary", bar: "bg-primary" };
+  return { text: "text-destructive", bar: "bg-destructive" };
 }
 
 const GameHUD = ({ state, onAbility, onPause, trialTimer }: GameHUDProps) => {
   const [muted, setMuted] = useState(isMuted());
-  const healthPercent = (state.health / state.maxHealth) * 100;
-  const latencyPercent = (state.latencyBudget / state.maxLatency) * 100;
-  const cooldownPercent = state.abilityCooldownTimer > 0
-    ? (state.abilityCooldownTimer / state.character.abilityCooldown) * 100
-    : 0;
+  const hullPercent = (state.health / state.maxHealth) * 100;
+  const budgetPercent = (state.latencyBudget / state.maxLatency) * 100;
+  const tone = budgetTone(budgetPercent);
+  const cooldown = state.abilityCooldownTimer > 0 ? state.abilityCooldownTimer / state.character.abilityCooldown : 0;
+  const ready = !state.abilityActive && cooldown <= 0;
+  const AbilityIcon = ABILITY_ICONS[state.character.ability];
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-10">
-      {/* Top bar */}
-      <div className="flex items-start justify-between px-3 pt-3 pointer-events-auto gap-2">
-        {/* Left: avatar + health */}
-        <div className="flex items-center gap-2">
-          <button onClick={onPause} className="active:scale-95 transition-transform">
-            <img
-              src={gmumIcon}
-              alt="GMUM"
-              className="w-9 h-9 rounded-full border border-primary/50 object-cover"
-            />
+    <div className="pointer-events-none absolute inset-0 z-10 select-none">
+      {/* Top row: three quiet panels so the numbers read over any world */}
+      <div className="pointer-events-auto flex items-start justify-between gap-3 px-4 pt-4 sm:px-6">
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-background/75 p-2 pr-4 backdrop-blur">
+          <button onClick={onPause} aria-label="Pause" className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-secondary">
+            <Pause className="h-4 w-4" strokeWidth={1.5} />
           </button>
-          <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-0.5">
-              {[0, 1, 2].map(i => {
-                const thirdHP = state.maxHealth / 3;
-                const filled = state.health > thirdHP * i;
-                return (
-                  <Heart
-                    key={i}
-                    className={`w-3.5 h-3.5 ${filled ? 'text-neon-magenta fill-neon-magenta' : 'text-muted-foreground'}`}
-                  />
-                );
-              })}
+          <div className="w-24">
+            <div className="flex justify-between text-xs text-subtle">
+              <span>Hull</span>
+              <span className="font-mono tabular-nums">{Math.round(hullPercent)}%</span>
             </div>
-            <div className="w-20 h-1.5 rounded-full bg-secondary overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-300"
-                style={{
-                  width: `${healthPercent}%`,
-                  background: healthPercent > 50
-                    ? 'hsl(var(--neon-magenta))'
-                    : healthPercent > 25
-                    ? 'hsl(40, 100%, 50%)'
-                    : 'hsl(0, 80%, 50%)',
-                }}
-              />
+            <div className="mt-1.5 grid grid-cols-5 gap-0.5">
+              {[0, 1, 2, 3, 4].map(i => (
+                <span key={i} className={`h-1.5 rounded-[2px] ${hullPercent > i * 20 ? (hullPercent > 40 ? "bg-foreground" : "bg-destructive") : "bg-foreground/15"}`} />
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Center: Level */}
-        <div className="text-center flex-shrink-0">
-          <span className="font-display text-xs tracking-widest uppercase text-muted-foreground">
-            Lv.{state.level}
-          </span>
-          <p className="font-display text-[9px] tracking-wider text-primary/70 truncate max-w-[80px]">
-            {state.worldConfig.name}
+        {/* Latency budget: the number that ends a run */}
+        <div className="hidden w-full max-w-sm rounded-xl border border-border bg-background/75 px-4 py-2.5 backdrop-blur sm:block">
+          <div className="flex items-baseline justify-between">
+            <span className="font-mono text-sm tabular-nums">Lv {state.level} <span className="text-subtle">· {state.worldConfig.name}</span></span>
+            <span className={`font-mono text-sm tabular-nums ${tone.text}`}>{Math.floor(state.latencyBudget)} ms</span>
+          </div>
+          <div className="mt-2 h-1 overflow-hidden rounded-full bg-foreground/15">
+            <div className={`h-full rounded-full ${tone.bar} transition-[width] duration-200`} style={{ width: `${budgetPercent}%` }} />
+          </div>
+          {trialTimer !== undefined && (
+            <p className="mt-1.5 font-mono text-xs tabular-nums text-primary">Trial {Math.ceil(trialTimer)} s left</p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1 rounded-xl border border-border bg-background/75 p-2 pl-4 backdrop-blur">
+          <span className="font-mono text-lg tabular-nums">{Math.floor(state.score).toLocaleString()}</span>
+          <button
+            onClick={() => setMuted(toggleMute())}
+            aria-label={muted ? "Unmute" : "Mute"}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-subtle transition-colors hover:text-foreground"
+          >
+            {muted ? <VolumeX className="h-4 w-4" strokeWidth={1.5} /> : <Volume2 className="h-4 w-4" strokeWidth={1.5} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Phones: the budget gets its own row under the panels */}
+      <div className="mx-4 mt-2 rounded-xl border border-border bg-background/75 px-4 py-2.5 backdrop-blur sm:hidden">
+        <div className="flex items-baseline justify-between">
+          <span className="font-mono text-sm tabular-nums">Lv {state.level}</span>
+          <span className={`font-mono text-sm tabular-nums ${tone.text}`}>{Math.floor(state.latencyBudget)} ms</span>
+        </div>
+        <div className="mt-2 h-1 overflow-hidden rounded-full bg-foreground/15">
+          <div className={`h-full rounded-full ${tone.bar} transition-[width] duration-200`} style={{ width: `${budgetPercent}%` }} />
+        </div>
+        {trialTimer !== undefined && (
+          <p className="mt-1.5 font-mono text-xs tabular-nums text-primary">Trial {Math.ceil(trialTimer)} s left</p>
+        )}
+      </div>
+
+      {/* Bottom row */}
+      <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex items-end justify-between px-4 pb-6 sm:px-6">
+        <div className="rounded-xl border border-border bg-background/75 px-4 py-2.5 backdrop-blur">
+          <p className="text-xs text-subtle">Combo</p>
+          <p className="font-mono text-2xl tabular-nums">
+            x{state.comboMultiplier.toFixed(1)}
+            <span className="ml-2 text-sm text-muted-foreground">{state.comboCount}</span>
           </p>
         </div>
 
-        {/* Right: Latency + Score */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-3">
+          <span className="keycap hidden sm:inline-flex">E</span>
           <button
-            onClick={() => setMuted(toggleMute())}
-            className="p-1 rounded-full bg-secondary/60 border border-primary/30 active:scale-95 transition-transform"
+            onClick={onAbility}
+            disabled={!ready}
+            aria-label="Use ability"
+            className={`relative flex h-16 w-16 items-center justify-center rounded-full border bg-background/80 backdrop-blur transition-[transform,background-color] active:scale-[0.97] ${
+              state.abilityActive ? "border-relay" : ready ? "border-primary" : "border-border"
+            }`}
           >
-            {muted
-              ? <VolumeX className="w-3.5 h-3.5 text-muted-foreground" />
-              : <Volume2 className="w-3.5 h-3.5 text-primary" />
-            }
+            <AbilityIcon className={`h-6 w-6 ${ready ? "text-primary" : state.abilityActive ? "text-relay" : "text-muted-foreground"}`} strokeWidth={1.5} />
+            {cooldown > 0 && (
+              <svg className="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 64 64" aria-hidden="true">
+                <circle cx="32" cy="32" r="30" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeDasharray={`${(1 - cooldown) * 188.5} 188.5`} />
+              </svg>
+            )}
           </button>
-          <div className="flex items-center gap-1 rounded-full border border-primary/40 bg-secondary/60 px-2 py-1 neon-box w-[68px] justify-center overflow-hidden">
-            <Zap className="w-3 h-3 text-primary fill-primary flex-shrink-0" />
-            <span className="font-display text-[10px] font-semibold text-foreground tabular-nums whitespace-nowrap truncate">
-              {formatScore(Math.floor(state.score))}
-            </span>
-          </div>
         </div>
       </div>
 
-      {/* Latency Budget bar (top) */}
-      <div className="px-3 mt-1">
-        <div className="flex items-center gap-1.5">
-          <Timer className="w-3 h-3 text-primary/70" />
-          <div className="flex-1 h-2 rounded-full bg-secondary/80 overflow-hidden neon-box">
-            <div
-              className="h-full rounded-full transition-all duration-200"
-              style={{
-                width: `${latencyPercent}%`,
-                background: latencyPercent > 50
-                  ? 'linear-gradient(90deg, hsl(200, 100%, 50%), hsl(185, 100%, 55%))'
-                  : latencyPercent > 25
-                  ? 'hsl(40, 100%, 50%)'
-                  : 'hsl(0, 80%, 50%)',
-                boxShadow: `0 0 8px ${latencyPercent > 50 ? 'hsl(200, 100%, 50%)' : 'hsl(0, 80%, 50%)'}`,
-              }}
-            />
-          </div>
-          <span className="font-display text-[10px] text-muted-foreground w-8 text-right">
-            {Math.floor(state.latencyBudget)}
-          </span>
-        </div>
-      </div>
-
-      {/* Bottom HUD */}
-      <div className="absolute bottom-4 left-0 right-0 flex items-end justify-between px-4 pointer-events-auto">
-        {/* Combo meter */}
-        <div className="flex flex-col items-start gap-0.5">
-          <div className="flex items-center gap-1">
-            <Zap className="w-3.5 h-3.5 text-neon-cyan" />
-            <span className="font-display text-[10px] tracking-wider uppercase text-muted-foreground">
-              Combo
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="font-display text-lg font-bold text-foreground neon-glow">
-              {state.comboCount}
-            </span>
-            <span className="font-display text-[10px] text-primary">
-              x{state.comboMultiplier.toFixed(1)}
-            </span>
-          </div>
-          <div className="w-16 h-1 rounded-full bg-secondary overflow-hidden">
-            <div
-              className="h-full rounded-full bg-neon-cyan transition-all"
-              style={{ width: `${Math.min(state.comboCount * 10, 100)}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Ability button */}
-        <button
-          onClick={onAbility}
-          disabled={state.abilityActive || state.abilityCooldownTimer > 0}
-          className="relative w-16 h-16 rounded-full border-2 border-primary bg-primary/10
-            flex items-center justify-center
-            active:scale-95 transition-all duration-200
-            disabled:border-muted-foreground disabled:opacity-40"
-          style={{
-            boxShadow: state.abilityActive
-              ? '0 0 20px hsl(160, 100%, 55%), inset 0 0 15px hsl(160, 100%, 55%)'
-              : cooldownPercent <= 0
-              ? '0 0 15px hsl(200, 100%, 50%), inset 0 0 10px hsl(200, 100%, 50%, 0.3)'
-              : 'none',
-          }}
-        >
-          <Zap className="w-7 h-7 text-primary" />
-          {cooldownPercent > 0 && (
-            <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 64 64">
-              <circle
-                cx="32" cy="32" r="29"
-                fill="none"
-                stroke="hsl(200, 100%, 50%)"
-                strokeWidth="2"
-                strokeDasharray={`${(1 - cooldownPercent / 100) * 182} 182`}
-                opacity="0.6"
-              />
-            </svg>
-          )}
-        </button>
-      </div>
-
-      {/* Low latency vignette warning */}
-      {latencyPercent < 30 && (
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            boxShadow: `inset 0 0 ${80 - latencyPercent * 2}px ${latencyPercent < 15 ? 'hsla(0, 80%, 40%, 0.6)' : 'hsla(0, 70%, 30%, 0.35)'}`,
-            animation: latencyPercent < 15 ? 'pulse 1s ease-in-out infinite' : 'none',
-          }}
-        />
+      {/* Boss wave: a steady red frame for the whole level */}
+      {state.isBossLevel && (
+        <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 0 3px rgba(229, 72, 77, 0.7), inset 0 0 120px rgba(229, 72, 77, 0.18)" }} />
       )}
 
-      {/* Level-up banner */}
+      {/* Running low: a steady red edge, no pulsing */}
+      {budgetPercent < 25 && (
+        <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 96px rgba(229, 72, 77, 0.35)" }} />
+      )}
+
+      {/* Event text from the engine */}
+      {state.floatingTexts.map((ft, i) => (
+        <span
+          key={`${ft.text}-${i}`}
+          className="absolute -translate-x-1/2 whitespace-nowrap rounded-md bg-background/70 px-2 py-1 font-mono text-xs backdrop-blur"
+          style={{ left: `${ft.x * 100}%`, top: `${ft.y * 100}%`, color: ft.color, opacity: Math.min(1, ft.life * 2) }}
+        >
+          {ft.text}
+        </span>
+      ))}
+
+      {/* Level change */}
       {state.levelUpDisplay > 0 && (
         <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          className="absolute inset-x-0 top-[30%] text-center"
           style={{ opacity: Math.min(state.levelUpDisplay / 0.5, 1) }}
         >
-          <div
-            className="flex flex-col items-center"
-            style={{ transform: `scale(${1 + (2.5 - state.levelUpDisplay) * 0.03})` }}
-          >
-            <span className="font-display text-3xl font-bold tracking-widest uppercase neon-glow text-foreground drop-shadow-lg">
-              Level {state.level}
-            </span>
-            <span className="font-display text-sm tracking-wider text-primary mt-1 drop-shadow">
-              {state.levelUpName}
-            </span>
-          </div>
+          <p className="text-[40px] font-medium leading-none tracking-[-0.02em]">Level {state.level}</p>
+          <p className={`mt-2 text-sm ${state.isBossLevel ? "text-destructive" : "text-subtle"}`}>{state.levelUpName}</p>
         </div>
       )}
     </div>

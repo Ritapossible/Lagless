@@ -1,17 +1,10 @@
 import { useState } from "react";
 import BuiltByFooter from "./BuiltByFooter";
+import ScreenHeader from "./ScreenHeader";
+import ThreeCanvas from "./ThreeCanvas";
 import { CHARACTERS, Character } from "@/game/types";
-import warpRunnerImg from "@/assets/char-warp-runner.png";
-import relayMasterImg from "@/assets/char-relay-master.png";
-import nodeEngineerImg from "@/assets/char-node-engineer.png";
-
-const CHAR_IMAGES = [warpRunnerImg, relayMasterImg, nodeEngineerImg];
-
-const ABILITY_DESCRIPTIONS: Record<string, string> = {
-  speed_warp: "Hyper speed + obstacle immunity",
-  relay_chain: "Auto-teleport across danger zones",
-  node_deploy: "Deploy temporary safe platforms",
-};
+import { RUNNER_INFO } from "@/game/runners";
+import { CraftStage } from "@/game/three/CraftStage";
 
 interface Props {
   onSelect: (character: Character) => void;
@@ -20,109 +13,68 @@ interface Props {
 
 const CharacterSelect = ({ onSelect, onBack }: Props) => {
   const [selected, setSelected] = useState(0);
+  const runner = CHARACTERS[selected];
+  const info = RUNNER_INFO[runner.ability];
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-6 pb-2">
-        <button
-          onClick={onBack}
-          className="text-muted-foreground font-display text-xs tracking-widest uppercase active:scale-95 transition-transform"
-        >
-          ← Back
-        </button>
-        <h1 className="font-display text-lg font-bold neon-glow tracking-wider">
-          Select Runner
-        </h1>
-        <div className="w-12" />
-      </div>
+    <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-background px-6 sm:px-8">
+      <ScreenHeader title="Choose a runner" onBack={onBack} />
 
-      {/* Character showcase */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4">
-        {/* Character image */}
-        <div className="relative">
-          <div
-            className="absolute inset-0 rounded-full blur-3xl opacity-40"
-            style={{
-              background: selected === 0
-                ? "hsl(var(--neon-blue))"
-                : selected === 1
-                  ? "hsl(var(--neon-cyan))"
-                  : "hsl(var(--neon-magenta))",
-            }}
-          />
-          <img
-            src={CHAR_IMAGES[selected]}
-            alt={CHARACTERS[selected].name}
-            className="relative w-44 h-44 object-contain animate-float drop-shadow-[0_0_24px_hsl(var(--neon-blue)/0.5)]"
-          />
-        </div>
+      <div className="mx-auto grid w-full max-w-5xl flex-1 items-center gap-8 py-4 md:grid-cols-[1.2fr_1fr]">
+        {/* The craft on its stand is the one rich thing on this screen */}
+        <ThreeCanvas
+          key={runner.ability}
+          create={(canvas) => {
+            const stage = new CraftStage(canvas);
+            stage.setCraft(runner.ability);
+            return stage;
+          }}
+          frame={(stage, dt) => stage.render(dt)}
+          className="aspect-[4/3] w-full"
+        />
 
-        {/* Character name */}
-        <h2 className="font-display text-2xl font-bold tracking-wider neon-glow leading-tight">
-          {CHARACTERS[selected].name}
-        </h2>
+        <div className="animate-enter">
+          <h2 className="text-[32px] font-medium leading-none">{runner.name}</h2>
+          <p className="mt-2 text-sm text-subtle">{info.craft}</p>
 
-        {/* Ability badge */}
-        <div className="px-4 py-2 rounded-xl border border-border bg-card/60 neon-box">
-          <p className="font-display text-[10px] tracking-widest uppercase text-muted-foreground mb-1">
-            Ability
-          </p>
-          <p className="font-body text-sm text-foreground">
-            {ABILITY_DESCRIPTIONS[CHARACTERS[selected].ability]}
-          </p>
-        </div>
-
-        {/* Stats */}
-        <div className="flex gap-6 text-center">
-          <div>
-            <p className="font-display text-[9px] tracking-widest uppercase text-muted-foreground">
-              Duration
-            </p>
-            <p className="font-display text-base font-bold text-foreground">
-              {CHARACTERS[selected].abilityDuration / 1000}s
-            </p>
+          <div className="surface mt-6 p-5">
+            <p className="text-sm text-muted-foreground">Ability</p>
+            <p className="mt-1 text-[15px] font-medium">{info.abilityName}</p>
+            <p className="mt-1 text-sm leading-5 text-subtle">{info.abilityText}</p>
+            <dl className="mt-4 grid grid-cols-2 gap-4 border-t border-border pt-4">
+              <div>
+                <dt className="text-sm text-muted-foreground">Lasts</dt>
+                <dd className="mt-1 font-mono text-lg tabular-nums">{runner.abilityDuration / 1000} s</dd>
+              </div>
+              <div>
+                <dt className="text-sm text-muted-foreground">Recharge</dt>
+                <dd className="mt-1 font-mono text-lg tabular-nums">{runner.abilityCooldown / 1000} s</dd>
+              </div>
+            </dl>
           </div>
-          <div>
-            <p className="font-display text-[9px] tracking-widest uppercase text-muted-foreground">
-              Cooldown
-            </p>
-            <p className="font-display text-base font-bold text-foreground">
-              {CHARACTERS[selected].abilityCooldown / 1000}s
-            </p>
-          </div>
-        </div>
-      </div>
 
-      {/* Character selector row */}
-      <div className="flex justify-center gap-3 pb-4">
-        {CHARACTERS.map((char, i) => (
-          <button
-            key={char.name}
-            onClick={() => setSelected(i)}
-            className={`relative w-20 h-20 rounded-2xl border-2 transition-all duration-200 active:scale-95 overflow-hidden ${
-              selected === i
-                ? "border-primary neon-box-intense scale-105"
-                : "border-border bg-card/40 opacity-60"
-            }`}
-          >
-            <img
-              src={CHAR_IMAGES[i]}
-              alt={char.name}
-              className="w-full h-full object-contain p-1"
-            />
+          <div className="mt-6 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Runner">
+            {CHARACTERS.map((char, i) => (
+              <button
+                key={char.name}
+                role="radio"
+                aria-checked={selected === i}
+                onClick={() => setSelected(i)}
+                className={`h-11 rounded-[10px] border text-sm transition-colors ${
+                  selected === i
+                    ? "border-primary/60 bg-secondary text-foreground"
+                    : "border-border text-subtle hover:text-foreground"
+                }`}
+              >
+                {char.name}
+              </button>
+            ))}
+          </div>
+
+          <button onClick={() => onSelect(runner)} className="btn-primary mt-6 w-full">
+            Fly {runner.name}
           </button>
-        ))}
-      </div>
-
-      {/* Play button */}
-      <div className="px-6 pb-4">
-        <button
-          onClick={() => onSelect(CHARACTERS[selected])}
-          className="w-full py-4 font-display text-lg font-bold tracking-[0.25em] uppercase rounded-2xl bg-primary text-primary-foreground neon-box-intense active:scale-[0.97] transition-transform"
-        >
-          Deploy
-        </button>
+        </div>
       </div>
       <BuiltByFooter />
     </div>

@@ -1,73 +1,46 @@
 import { PlayerProgress } from "@/game/playerProgress";
-import { getUnlockedIds } from "@/game/achievements";
-import { Lock } from "lucide-react";
+import { Check, Lock } from "lucide-react";
 
-interface AchievementDisplay {
-  id: string;
-  emoji: string;
-  name: string;
-  description: string;
-  unlocked: boolean;
-}
-
-const ALL_ACHIEVEMENTS: { id: string; emoji: string; name: string; description: string; check: (p: PlayerProgress) => boolean }[] = [
-  { id: "first_clear", emoji: "🏆", name: "First Sync", description: "Complete the game once", check: (p) => (p.timesCompleted || 0) >= 1 },
-  { id: "five_clears", emoji: "👑", name: "Network Veteran", description: "Complete the game 5 times", check: (p) => (p.timesCompleted || 0) >= 5 },
-  { id: "ten_clears", emoji: "💎", name: "Core Architect", description: "Complete the game 10 times", check: (p) => (p.timesCompleted || 0) >= 10 },
-  { id: "reach_10", emoji: "📡", name: "Signal Found", description: "Reach Level 10", check: (p) => (p.highestLevel || 0) >= 10 },
-  { id: "reach_25", emoji: "⚡", name: "Grid Breaker", description: "Reach Level 25", check: (p) => (p.highestLevel || 0) >= 25 },
-  { id: "reach_40", emoji: "🛰️", name: "Optimum Access", description: "Reach Level 40", check: (p) => (p.highestLevel || 0) >= 40 },
-  { id: "score_10k", emoji: "🔥", name: "Data Surge", description: "Score 10,000+ points", check: (p) => (p.highScore || 0) >= 10_000 },
-  { id: "score_50k", emoji: "💫", name: "Bandwidth King", description: "Score 50,000+ points", check: (p) => (p.highScore || 0) >= 50_000 },
-  { id: "score_100k", emoji: "🌟", name: "Latency Legend", description: "Score 100,000+ points", check: (p) => (p.highScore || 0) >= 100_000 },
-  { id: "combo_3", emoji: "🎯", name: "Combo Starter", description: "Reach x3.0 combo", check: (p) => (p.bestCombo || 0) >= 3 },
-  { id: "combo_5", emoji: "💥", name: "Combo Master", description: "Reach x5.0 combo", check: (p) => (p.bestCombo || 0) >= 5 },
-  { id: "runs_10", emoji: "🔄", name: "Persistent", description: "Play 10 runs", check: (p) => (p.totalRuns || 0) >= 10 },
-  { id: "runs_50", emoji: "🏅", name: "Dedicated Router", description: "Play 50 runs", check: (p) => (p.totalRuns || 0) >= 50 },
+const ALL_ACHIEVEMENTS: { id: string; name: string; description: string; check: (p: PlayerProgress) => boolean }[] = [
+  { id: "reach_10", name: "Signal Found", description: "Reach level 10", check: (p) => (p.highestLevel || 0) >= 10 },
+  { id: "reach_25", name: "Grid Breaker", description: "Reach level 25", check: (p) => (p.highestLevel || 0) >= 25 },
+  { id: "reach_40", name: "Clear Channel", description: "Reach level 40", check: (p) => (p.highestLevel || 0) >= 40 },
+  { id: "first_clear", name: "First Sync", description: "Finish all 50 levels", check: (p) => (p.timesCompleted || 0) >= 1 },
+  { id: "five_clears", name: "Network Veteran", description: "Finish the game 5 times", check: (p) => (p.timesCompleted || 0) >= 5 },
+  { id: "ten_clears", name: "Core Architect", description: "Finish the game 10 times", check: (p) => (p.timesCompleted || 0) >= 10 },
+  { id: "score_10k", name: "Data Surge", description: "Score 10,000 points", check: (p) => (p.highScore || 0) >= 10_000 },
+  { id: "score_50k", name: "Bandwidth King", description: "Score 50,000 points", check: (p) => (p.highScore || 0) >= 50_000 },
+  { id: "score_100k", name: "Latency Legend", description: "Score 100,000 points", check: (p) => (p.highScore || 0) >= 100_000 },
+  { id: "combo_3", name: "Combo Starter", description: "Reach a x3.0 combo", check: (p) => (p.bestCombo || 0) >= 3 },
+  { id: "combo_5", name: "Combo Master", description: "Reach a x5.0 combo", check: (p) => (p.bestCombo || 0) >= 5 },
+  { id: "runs_10", name: "Persistent", description: "Fly 10 runs", check: (p) => (p.totalRuns || 0) >= 10 },
+  { id: "runs_50", name: "Dedicated Router", description: "Fly 50 runs", check: (p) => (p.totalRuns || 0) >= 50 },
 ];
 
 const AchievementBadges = ({ progress }: { progress: PlayerProgress }) => {
-  const achievements: AchievementDisplay[] = ALL_ACHIEVEMENTS.map((a) => ({
-    ...a,
-    unlocked: a.check(progress),
-  }));
+  const achievements = ALL_ACHIEVEMENTS.map((a) => ({ ...a, unlocked: a.check(progress) }));
   const unlocked = achievements.filter((a) => a.unlocked).length;
 
   return (
-    <div className="rounded-xl border border-primary/20 bg-secondary/30 p-4 mb-6">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-display text-xs tracking-widest uppercase text-muted-foreground">
-          Achievements
-        </h3>
-        <span className="font-display text-xs tracking-wider text-primary">
-          {unlocked}/{achievements.length}
-        </span>
+    <section>
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-sm text-muted-foreground">Achievements</h2>
+        <span className="font-mono text-xs tabular-nums text-muted-foreground">{unlocked} of {achievements.length}</span>
       </div>
-
-      <div className="grid grid-cols-3 gap-2">
+      <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {achievements.map((a) => (
-          <div
-            key={a.id}
-            className={`relative flex flex-col items-center p-2.5 rounded-lg border transition-all ${
-              a.unlocked
-                ? "border-primary/30 bg-primary/5"
-                : "border-border/30 bg-secondary/20 opacity-40"
-            }`}
-          >
-            <span className="text-xl mb-1">{a.unlocked ? a.emoji : ""}</span>
-            {!a.unlocked && (
-              <Lock className="w-4 h-4 text-muted-foreground mb-1" />
-            )}
-            <span className="font-display text-[9px] tracking-wider text-center leading-tight text-foreground">
-              {a.name}
-            </span>
-            <span className="font-body text-[8px] text-muted-foreground text-center leading-tight mt-0.5">
-              {a.description}
-            </span>
-          </div>
+          <li key={a.id} className="flex h-16 items-center gap-3 rounded-xl border border-border bg-card px-4">
+            {a.unlocked
+              ? <Check className="h-4 w-4 shrink-0 text-positive" strokeWidth={1.5} />
+              : <Lock className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+            <div className="min-w-0">
+              <p className={`truncate text-sm ${a.unlocked ? "text-foreground" : "text-subtle"}`}>{a.name}</p>
+              <p className="truncate text-xs text-muted-foreground">{a.description}</p>
+            </div>
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+    </section>
   );
 };
 

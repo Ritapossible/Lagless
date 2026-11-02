@@ -51,7 +51,7 @@ export function createInitialState(character?: import('./types').Character, star
     levelUpName: '',
     isBossLevel: false,
     relaysUsed: 0,
-    flexNodesDeployed: 0,
+    platformsDeployed: 0,
     routingMistakes: 0,
     bestCombo: 0,
     failureCause: '',
@@ -112,14 +112,14 @@ export function updateGame(state: GameState, dt: number): GameState {
   } else {
     s.streakTimer = 0;
   }
-  // Stability zones (FlexNode Dominion) — counts as FlexNode deployment
+  // Stability zones (Anchor Yards) — count as platform deployments
   if (wc.stabilityZones && currentLaneState === 'fast') {
     drainRate *= 0.5;
     // Count once every ~2 seconds while in stability zone
     if (s.frameCount % 120 === 0) {
-      s.flexNodesDeployed++;
+      s.platformsDeployed++;
       s.floatingTexts = [...s.floatingTexts, {
-        text: 'FlexNode Stabilized +1', x: 0.5, y: 0.6, life: 1.2, color: '#00ffcc',
+        text: 'Lane stable +1', x: 0.5, y: 0.6, life: 1.2, color: '#4cc38a',
       }];
     }
   }
@@ -184,20 +184,20 @@ export function updateGame(state: GameState, dt: number): GameState {
       l.timer -= dt;
       if (l.timer <= 0) {
         l.state = 'fast';
-        // Lane recovered from collapse = FlexNode stabilization
+        // Lane recovered from collapse = platform stabilisation
         if (prevState === 'collapsing') {
-          s.flexNodesDeployed++;
+          s.platformsDeployed++;
           s.floatingTexts = [...s.floatingTexts, {
-            text: 'FlexNode Stabilized +1', x: 0.2 + laneIdx * 0.3, y: 0.55, life: 1.2, color: '#00ffcc',
+            text: 'Lane stable +1', x: 0.2 + laneIdx * 0.3, y: 0.55, life: 1.2, color: '#4cc38a',
           }];
         }
       }
     }
-    // Congested lane auto-stabilized to fast = FlexNode event
+    // Congested lane auto-stabilised to fast = platform event
     if (prevState === 'congested' && l.state === 'fast') {
-      s.flexNodesDeployed++;
+      s.platformsDeployed++;
       s.floatingTexts = [...s.floatingTexts, {
-        text: 'FlexNode Stabilized +1', x: 0.2 + laneIdx * 0.3, y: 0.55, life: 1.2, color: '#00ffcc',
+        text: 'Lane stable +1', x: 0.2 + laneIdx * 0.3, y: 0.55, life: 1.2, color: '#4cc38a',
       }];
     }
     return l;
@@ -302,7 +302,7 @@ export function updateGame(state: GameState, dt: number): GameState {
     }
     s.speed += 0.3;
     s.levelUpDisplay = 2.5;
-    s.levelUpName = s.isBossLevel ? `⚠ BOSS WAVE ⚠` : s.worldConfig.name;
+    s.levelUpName = s.isBossLevel ? 'Boss wave' : s.worldConfig.name;
     s.audioEvents.levelUp = true;
   }
 
@@ -312,13 +312,13 @@ export function updateGame(state: GameState, dt: number): GameState {
     s.running = false;
     s.bestCombo = Math.max(s.bestCombo, s.comboMultiplier);
     // Dynamic failure cause
-    const worldNames = ['Congestion Zone', 'Fragmented Grid', 'Mesh Awakening', 'FlexNode Dominion', 'Optimum Layer'];
+    const worldNames = WORLDS.map(w => w.name);
     const stageCauses: Record<string, string[]> = {
       'Congestion Zone': ['Network Saturation', 'Congestion Overload'],
       'Fragmented Grid': ['Grid Collapse', 'Fragmentation Storm'],
       'Mesh Awakening': ['Relay Chain Break', 'Mesh Link Failure'],
-      'FlexNode Dominion': ['Stability Field Lost', 'FlexNode Misdeployment'],
-      'Optimum Layer': ['Over-Acceleration Fault', 'Precision Routing Failure'],
+      'Anchor Yards': ['Stability Field Lost', 'Platform Misplaced'],
+      'Clear Channel': ['Over-Acceleration Fault', 'Precision Routing Failure'],
     };
     if (s.health <= 0) {
       const causes = ['Packet Integrity Compromised', 'Congestion Collision', 'Signal Fragmentation Impact'];
@@ -364,9 +364,9 @@ export function activateAbility(state: GameState): GameState {
     s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + 30);
   } else if (s.character.ability === 'node_deploy') {
     s.lanes = s.lanes.map(() => ({ state: 'fast' as const, timer: 0 })) as GameState['lanes'];
-    s.flexNodesDeployed++;
+    s.platformsDeployed++;
     s.floatingTexts = [...s.floatingTexts, {
-      text: 'FlexNode Stabilized +1', x: 0.5, y: 0.5, life: 1.5, color: '#00ffcc',
+      text: 'Lane stable +1', x: 0.5, y: 0.5, life: 1.5, color: '#4cc38a',
     }];
   }
   

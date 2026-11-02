@@ -5,7 +5,7 @@ const run = (score: number): RunRecord => ({
   score,
   level: 3,
   world: "Congestion Zone",
-  character: "Warp Runner",
+  character: "Dart",
   bestCombo: 1.5,
   victory: false,
   date: "2026-11-02T10:00:00.000Z",

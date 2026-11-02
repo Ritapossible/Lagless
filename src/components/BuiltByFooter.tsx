@@ -1,14 +1,14 @@
 const BuiltByFooter = () => (
-  <div className="w-full text-center py-3">
+  <footer className="py-8 text-center">
     <a
       href="https://x.com/RitaCryptoTips"
       target="_blank"
       rel="noopener noreferrer"
-      className="font-body text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+      className="text-xs text-muted-foreground transition-colors hover:text-subtle"
     >
-      Built with 💜 by <span className="text-primary/70">RitaCryptoTips</span>
+      Made by RitaCryptoTips
     </a>
-  </div>
+  </footer>
 );
 
 export default BuiltByFooter;
