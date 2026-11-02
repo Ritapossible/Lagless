@@ -51,7 +51,7 @@ export class GameRenderer {
   private dashes: THREE.InstancedMesh;
   private streaks: THREE.InstancedMesh;
   private obstaclePools: Record<Obstacle['type'], THREE.Group[]> = { spam: [], storm: [], failure: [] };
-  private pickupPools: Record<Pickup['type'], THREE.Group[]> = { relay: [], health: [], score: [] };
+  private pickupPools: Record<Pickup['type'], THREE.Group[]> = { relay: [], time: [], repair: [], score: [] };
 
   private craft: CraftParts | null = null;
   private craftAbility: AbilityType | null = null;
@@ -263,10 +263,21 @@ export class GameRenderer {
       beacon.add(ring, beam);
       beacon.visible = false;
       g.add(beacon);
-    } else if (type === 'health') {
+    } else if (type === 'time') {
       const m = new THREE.MeshLambertMaterial({ color: 0x0f2a1a, emissive: 0x4cc38a, emissiveIntensity: 1.2, flatShading: true });
       g.add(new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.22), m));
       g.add(new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.7, 0.22), m));
+    } else if (type === 'repair') {
+      // White repair cell: a hexagonal capsule with a dark band, glowing softly
+      const shell = new THREE.MeshLambertMaterial({ color: 0x3a3d44, emissive: 0xf4f6fa, emissiveIntensity: 1.0, flatShading: true });
+      const band = new THREE.MeshLambertMaterial({ color: 0x1a1d24, flatShading: true });
+      const cell = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.7, 6), shell);
+      cell.rotation.z = Math.PI / 2;
+      const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.335, 0.335, 0.12, 6), band);
+      ring.rotation.z = Math.PI / 2;
+      const halo = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.03, 4, 24), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 }));
+      halo.rotation.y = Math.PI / 2;
+      g.add(cell, ring, halo);
     } else {
       const m = new THREE.MeshLambertMaterial({ color: 0x2b1d08, emissive: 0xf2a33a, emissiveIntensity: 1.2, flatShading: true });
       const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.1, 12), m);
@@ -384,7 +395,7 @@ export class GameRenderer {
 
   private placePickups(pickups: Pickup[], highlightRelays: boolean) {
     const blink = 0.5 + 0.5 * Math.sin(this.time * 9);
-    const used = { relay: 0, health: 0, score: 0 };
+    const used = { relay: 0, time: 0, repair: 0, score: 0 };
     for (const p of pickups) {
       if (p.collected) continue;
       const pool = this.pickupPools[p.type];

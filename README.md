@@ -28,7 +28,15 @@ You are a packet crossing a network that is falling apart. Every run is a race a
 
 - The budget drains all the time, and fast on **red congested lanes**. At 0 ms the run times out.
 - **Teal relay lanes** and **teal diamonds** refill it and build your combo, which multiplies your score.
-- **Hazards** (crates, storm pylons and broken gates) cost hull. **Green crosses** repair it and refill 15 ms; **amber coins** add score.
+- **Hazards** (crates, storm pylons and broken gates) cost hull.
+- **Pickups**, each with one job:
+
+  | Pickup | What it does |
+  | --- | --- |
+  | Teal diamond | Refills 20 ms and builds your combo |
+  | Green cross | Refills 15 ms |
+  | White repair cell | Repairs 30% of your hull |
+  | Amber coin | Adds score |
 - There is always a way through: hazards never close all three lanes at once.
 - **Collapsing lanes** flicker and sink for a few seconds, then recover as fast lanes.
 

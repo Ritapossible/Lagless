@@ -1,7 +1,15 @@
-import { GameState, Obstacle, Pickup, WORLDS, CHARACTERS, LaneState, DEFAULT_JUMP_VELOCITY, DEFAULT_GRAVITY, LIFT_OFF_HEIGHT, LEVEL_DISTANCE, OVERDRIVE_REFILL, HEALTH_PICKUP_REFILL } from './types';
+import { GameState, Obstacle, Pickup, WORLDS, CHARACTERS, LaneState, DEFAULT_JUMP_VELOCITY, DEFAULT_GRAVITY, LIFT_OFF_HEIGHT, LEVEL_DISTANCE, OVERDRIVE_REFILL, TIME_PICKUP_REFILL, REPAIR_PICKUP_HULL } from './types';
 
 // Spawn and lane-change odds are tuned per frame at 60 fps. Scaling them by frame time keeps
 // the same rate per second on any device; a phone at 30 fps used to get half the pickups.
+// Pickup mix: relay 30%, time 25%, repair 20%, score 25%
+function pickPickupType(roll: number): Pickup['type'] {
+  if (roll < 0.3) return 'relay';
+  if (roll < 0.55) return 'time';
+  if (roll < 0.75) return 'repair';
+  return 'score';
+}
+
 const SPAWN_Z = 800;
 // Hazards closer together than this much travel time count as one stretch of track
 const FAIR_GAP_SECONDS = 0.7;
@@ -179,7 +187,7 @@ export function updateGame(state: GameState, dt: number): GameState {
     s.pickups = [...s.pickups, {
       lane,
       z: 800,
-      type: ['relay', 'health', 'score'][Math.floor(Math.random() * 3)] as Pickup['type'],
+      type: pickPickupType(Math.random()),
       collected: false,
     }];
   }
@@ -261,9 +269,10 @@ export function updateGame(state: GameState, dt: number): GameState {
         s.comboCount++;
         s.relaysUsed++;
         s.score += 50 * s.comboMultiplier;
-      } else if (p.type === 'health') {
-        s.health = Math.min(s.maxHealth, s.health + 10);
-        s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + HEALTH_PICKUP_REFILL);
+      } else if (p.type === 'time') {
+        s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + TIME_PICKUP_REFILL);
+      } else if (p.type === 'repair') {
+        s.health = Math.min(s.maxHealth, s.health + REPAIR_PICKUP_HULL);
       } else {
         s.score += 100 * s.comboMultiplier;
       }

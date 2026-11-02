@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createInitialState, updateGame, jump, activateAbility } from "@/game/engine";
-import { CHARACTERS, LIFT_OFF_HEIGHT, GameState, LEVEL_DISTANCE, OVERDRIVE_REFILL, HEALTH_PICKUP_REFILL } from "@/game/types";
+import { CHARACTERS, LIFT_OFF_HEIGHT, GameState, LEVEL_DISTANCE, OVERDRIVE_REFILL, TIME_PICKUP_REFILL, REPAIR_PICKUP_HULL } from "@/game/types";
 
 const byName = (name: string) => CHARACTERS.find(c => c.name === name)!;
 
@@ -105,12 +105,27 @@ describe("balance", () => {
     expect(activateAbility(s).latencyBudget).toBe(40 + OVERDRIVE_REFILL);
   });
 
-  it("refills 15 ms and repairs hull from a green cross", () => {
-    let s: GameState = { ...running("Dart"), latencyBudget: 40, health: 30 };
-    s = { ...s, pickups: [{ lane: s.currentLane, z: 52, type: "health", collected: false }] };
-    s = updateGame(s, 1 / 60);
-    expect(s.health).toBe(40);
-    expect(s.latencyBudget).toBeGreaterThan(40 + HEALTH_PICKUP_REFILL - 1);
+  const collect = (type: "time" | "repair") => {
+    const s: GameState = { ...running("Dart"), latencyBudget: 40, health: 30 };
+    return updateGame({ ...s, pickups: [{ lane: s.currentLane, z: 52, type, collected: false }] }, 1 / 60);
+  };
+
+  it("a green cross refills 15 ms of time and leaves the hull alone", () => {
+    const s = collect("time");
+    expect(s.latencyBudget).toBeGreaterThan(40 + TIME_PICKUP_REFILL - 1);
+    expect(s.health).toBe(30);
+  });
+
+  it("a white repair cell repairs the hull and leaves the time alone", () => {
+    const s = collect("repair");
+    expect(s.health).toBe(30 + REPAIR_PICKUP_HULL);
+    expect(s.latencyBudget).toBeLessThan(40);
+  });
+
+  it("never repairs the hull past full", () => {
+    const s: GameState = { ...running("Dart"), health: 45 };
+    const after = updateGame({ ...s, pickups: [{ lane: s.currentLane, z: 52, type: "repair", collected: false }] }, 1 / 60);
+    expect(after.health).toBe(after.maxHealth);
   });
 
   it("goes back to cruising speed after Overdrive, not the world's starting speed", () => {

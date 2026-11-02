@@ -19,7 +19,8 @@ export interface Obstacle {
 export interface Pickup {
   lane: number;
   z: number;
-  type: 'relay' | 'health' | 'score';
+  /** relay: teal diamond, refills time and combo; time: green cross, refills time; repair: white cell, repairs hull; score: amber coin */
+  type: 'relay' | 'time' | 'repair' | 'score';
   collected: boolean;
 }
 
@@ -50,7 +51,9 @@ export const DEFAULT_GRAVITY = 25;
 export const LEVEL_DISTANCE = 300;
 /** Latency budget refilled by Overdrive and by green crosses */
 export const OVERDRIVE_REFILL = 25;
-export const HEALTH_PICKUP_REFILL = 15;
+export const TIME_PICKUP_REFILL = 15;
+/** Hull repaired by a white repair cell (hull is 50) */
+export const REPAIR_PICKUP_HULL = 15;
 /** Height Volt holds during Lift-off; anything over 2 clears obstacles */
 export const LIFT_OFF_HEIGHT = 3.2;
 

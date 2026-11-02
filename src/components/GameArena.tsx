@@ -410,7 +410,7 @@ const CONTROLS = [
 const RULES = [
   { title: "Keep your latency budget", text: "It drains every second and fast on red lanes. At 0 ms the run times out." },
   { title: "Ride the teal lanes", text: "Relay lanes refill the budget and build your combo. Teal diamonds refill it too." },
-  { title: "Jump the hazards", text: "Crates, storm pylons and broken gates cost hull. Green crosses repair it and refill 15 ms, amber coins add score." },
+  { title: "Jump the hazards", text: "Crates, storm pylons and broken gates cost hull. White repair cells fix it, green crosses refill 15 ms and amber coins add score." },
   { title: "Five worlds, 50 levels", text: "Boss waves at 25 and 39. Checkpoints save from level 10, so a long run is never lost." },
 ];
 
