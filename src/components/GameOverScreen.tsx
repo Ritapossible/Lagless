@@ -1,4 +1,4 @@
-import { GameState } from "@/game/types";
+import { GameState, LEVEL_DISTANCE } from "@/game/types";
 import { RotateCcw } from "lucide-react";
 import BuiltByFooter from "./BuiltByFooter";
 
@@ -14,7 +14,7 @@ const fmt = (n: number) => Math.floor(n).toLocaleString();
 
 const GameOverScreen = ({ state, retryLevel, onRestart, onExit }: GameOverProps) => {
   const isVictory = state.failureCause === '__VICTORY__';
-  const progressInLevel = ((state.distance % 500) / 500) * 100;
+  const progressInLevel = ((state.distance % LEVEL_DISTANCE) / LEVEL_DISTANCE) * 100;
   const bestCombo = Math.max(state.bestCombo, state.comboMultiplier);
 
   const title = isVictory ? "Network clear" : state.health <= 0 ? "Hull lost" : "Timed out";

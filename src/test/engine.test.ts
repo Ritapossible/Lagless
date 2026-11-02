@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createInitialState, updateGame, jump, activateAbility } from "@/game/engine";
-import { CHARACTERS, LIFT_OFF_HEIGHT, GameState } from "@/game/types";
+import { CHARACTERS, LIFT_OFF_HEIGHT, GameState, LEVEL_DISTANCE, OVERDRIVE_REFILL, HEALTH_PICKUP_REFILL } from "@/game/types";
 
 const byName = (name: string) => CHARACTERS.find(c => c.name === name)!;
 
@@ -66,5 +66,67 @@ describe("Lift-off", () => {
     s = step(s, 2);
     expect(s.playerY).toBe(0);
     expect(s.isJumping).toBe(false);
+  });
+});
+
+describe("balance", () => {
+  // Deterministic random so spawn counts compare like for like
+  const seeded = (seed: number) => () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+
+  function spawnsPerMinute(fps: number) {
+    const real = Math.random;
+    Math.random = seeded(42);
+    try {
+      let s: GameState = { ...running("Dart"), latencyBudget: 1e9, maxLatency: 1e9, health: 1e9, maxHealth: 1e9 };
+      let pickups = 0, obstacles = 0;
+      for (let i = 0; i < 3 * 60 * fps; i++) {
+        const before = { p: s.pickups.length, o: s.obstacles.length };
+        s = updateGame(s, 1 / fps);
+        pickups += Math.max(0, s.pickups.length - before.p);
+        obstacles += Math.max(0, s.obstacles.length - before.o);
+      }
+      return { pickups: pickups / 3, obstacles: obstacles / 3 };
+    } finally {
+      Math.random = real;
+    }
+  }
+
+  it("spawns about the same per second at 30 fps as at 60 fps", () => {
+    const at60 = spawnsPerMinute(60);
+    const at30 = spawnsPerMinute(30);
+    expect(at30.pickups / at60.pickups).toBeGreaterThan(0.75);
+    expect(at30.pickups / at60.pickups).toBeLessThan(1.25);
+    expect(at30.obstacles / at60.obstacles).toBeGreaterThan(0.8);
+    expect(at30.obstacles / at60.obstacles).toBeLessThan(1.2);
+  });
+
+  it("refills 25 ms when Overdrive fires", () => {
+    const s = { ...running("Dart"), latencyBudget: 40 };
+    expect(activateAbility(s).latencyBudget).toBe(40 + OVERDRIVE_REFILL);
+  });
+
+  it("refills 15 ms and repairs hull from a green cross", () => {
+    let s: GameState = { ...running("Dart"), latencyBudget: 40, health: 30 };
+    s = { ...s, pickups: [{ lane: s.currentLane, z: 52, type: "health", collected: false }] };
+    s = updateGame(s, 1 / 60);
+    expect(s.health).toBe(40);
+    expect(s.latencyBudget).toBeGreaterThan(40 + HEALTH_PICKUP_REFILL - 1);
+  });
+
+  it("goes back to cruising speed after Overdrive, not the world's starting speed", () => {
+    const start = createInitialState(byName("Dart"), 26);
+    let s: GameState = { ...start, running: true, latencyBudget: 1e9, maxLatency: 1e9, health: 1e9, maxHealth: 1e9 };
+    const cruising = s.speed;
+    s = step(activateAbility(s), 0.5);
+    const during = s.distance;
+    s = step(s, 3);
+    expect(s.abilityActive).toBe(false);
+    expect(s.speed).toBeGreaterThanOrEqual(cruising);
+    // While active the run covered ground at double pace
+    expect(during - start.distance).toBeGreaterThan(cruising * 0.5 * 1.9);
+  });
+
+  it("levels up every LEVEL_DISTANCE", () => {
+    expect(createInitialState(byName("Dart"), 5).distance).toBe(4 * LEVEL_DISTANCE);
   });
 });

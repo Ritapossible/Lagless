@@ -1,4 +1,13 @@
-import { GameState, Obstacle, Pickup, WORLDS, CHARACTERS, LaneState, DEFAULT_JUMP_VELOCITY, DEFAULT_GRAVITY, LIFT_OFF_HEIGHT } from './types';
+import { GameState, Obstacle, Pickup, WORLDS, CHARACTERS, LaneState, DEFAULT_JUMP_VELOCITY, DEFAULT_GRAVITY, LIFT_OFF_HEIGHT, LEVEL_DISTANCE, OVERDRIVE_REFILL, HEALTH_PICKUP_REFILL } from './types';
+
+// Spawn and lane-change odds are tuned per frame at 60 fps. Scaling them by frame time keeps
+// the same rate per second on any device; a phone at 30 fps used to get half the pickups.
+const SPAWN_Z = 800;
+// Hazards closer together than this much travel time count as one stretch of track
+const FAIR_GAP_SECONDS = 0.7;
+
+const chance = (perFrameAt60: number, dt: number) =>
+  Math.random() < 1 - Math.pow(1 - Math.min(perFrameAt60, 1), dt * 60);
 
 const BOSS_LEVELS = [25, 39];
 
@@ -22,7 +31,7 @@ export function createInitialState(character?: import('./types').Character, star
     playerVelocityY: 0,
     isJumping: false,
     speed: worldConfig.baseSpeed + (level - 1) * 0.3,
-    distance: (level - 1) * 500,
+    distance: (level - 1) * LEVEL_DISTANCE,
     score: 0,
     health: 50,
     maxHealth: 50,
@@ -69,7 +78,9 @@ export function updateGame(state: GameState, dt: number): GameState {
   const wc = s.worldConfig;
   s.audioEvents = { hit: false, pickup: false, levelUp: false, gameOver: false };
   s.frameCount++;
-  s.distance += s.speed * dt;
+  // Overdrive doubles the pace while it runs; s.speed itself stays the cruising speed
+  const pace = s.abilityActive && s.character.ability === 'speed_warp' ? s.speed * 2 : s.speed;
+  s.distance += pace * dt;
 
   // Update floating texts
   s.floatingTexts = s.floatingTexts
@@ -77,7 +88,7 @@ export function updateGame(state: GameState, dt: number): GameState {
     .filter(ft => ft.life > 0);
   
   // Score from survival
-  s.score += s.speed * dt * s.comboMultiplier * 0.5;
+  s.score += pace * dt * s.comboMultiplier * 0.5;
 
   // Lane interpolation
   if (s.currentLane !== s.targetLane) {
@@ -121,7 +132,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   if (wc.stabilityZones && currentLaneState === 'fast') {
     drainRate *= 0.5;
     // Count once every ~2 seconds while in stability zone
-    if (s.frameCount % 120 === 0) {
+    if (chance(1 / 120, dt)) {
       s.platformsDeployed++;
       s.floatingTexts = [...s.floatingTexts, {
         text: 'Lane stable +1', x: 0.5, y: 0.6, life: 1.2, color: '#4cc38a',
@@ -145,11 +156,16 @@ export function updateGame(state: GameState, dt: number): GameState {
 
   // Spawn obstacles — boss levels spike density
   const obsDensity = wc.obstacleDensity * bossMulti;
-  if (Math.random() < obsDensity) {
+  if (chance(obsDensity, dt)) {
     const lane = Math.floor(Math.random() * 3);
-    s.obstacles = [...s.obstacles, {
+    // Fairness: never close the last open lane in a stretch, and never stack two hazards in one lane
+    const fairGap = Math.max(160, s.speed * 60 * FAIR_GAP_SECONDS);
+    const nearSpawn = s.obstacles.filter(o => o.z > SPAWN_Z - fairGap);
+    const blocked = new Set(nearSpawn.map(o => o.lane)).add(lane);
+    const stacked = nearSpawn.some(o => o.lane === lane && o.z > SPAWN_Z - fairGap / 2);
+    if (blocked.size < 3 && !stacked) s.obstacles = [...s.obstacles, {
       lane,
-      z: 800,
+      z: SPAWN_Z,
       type: ['spam', 'storm', 'failure'][Math.floor(Math.random() * 3)] as Obstacle['type'],
       width: 40,
       height: 40,
@@ -158,7 +174,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   }
 
   // Spawn pickups
-  if (Math.random() < wc.relayFrequency) {
+  if (chance(wc.relayFrequency, dt)) {
     const lane = Math.floor(Math.random() * 3);
     s.pickups = [...s.pickups, {
       lane,
@@ -172,14 +188,14 @@ export function updateGame(state: GameState, dt: number): GameState {
   s.lanes = s.lanes.map((lane, laneIdx) => {
     const l = { ...lane };
     const prevState = l.state;
-    if (Math.random() < (wc.congestedLaneChance * bossMulti)) {
+    if (chance(wc.congestedLaneChance * bossMulti, dt)) {
       const roll = Math.random();
       if (wc.laneDisableChance > 0 && Math.random() < wc.laneDisableChance * 10) {
         l.state = 'collapsing';
         l.timer = 3;
       } else if (roll < 0.4) {
         l.state = 'congested';
-      } else if (roll < 0.4 + wc.relayFrequency * 5) {
+      } else if (roll < 0.4 + Math.min(0.3, wc.relayFrequency * 12)) {
         l.state = 'relay';
       } else {
         l.state = 'fast';
@@ -210,11 +226,11 @@ export function updateGame(state: GameState, dt: number): GameState {
 
   // Move obstacles and pickups
   s.obstacles = s.obstacles
-    .map(o => ({ ...o, z: o.z - s.speed * 60 * dt }))
+    .map(o => ({ ...o, z: o.z - pace * 60 * dt }))
     .filter(o => o.z > -100);
 
   s.pickups = s.pickups
-    .map(p => ({ ...p, z: p.z - s.speed * 60 * dt }))
+    .map(p => ({ ...p, z: p.z - pace * 60 * dt }))
     .filter(p => p.z > -100);
 
   // Collision detection — stage-specific damage
@@ -247,6 +263,7 @@ export function updateGame(state: GameState, dt: number): GameState {
         s.score += 50 * s.comboMultiplier;
       } else if (p.type === 'health') {
         s.health = Math.min(s.maxHealth, s.health + 10);
+        s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + HEALTH_PICKUP_REFILL);
       } else {
         s.score += 100 * s.comboMultiplier;
       }
@@ -260,9 +277,6 @@ export function updateGame(state: GameState, dt: number): GameState {
     s.abilityDurationTimer -= dt * 1000;
     if (s.abilityDurationTimer <= 0) {
       s.abilityActive = false;
-      if (s.character.ability === 'speed_warp') {
-        s.speed = wc.baseSpeed;
-      }
     }
   }
   if (s.abilityCooldownTimer > 0) {
@@ -275,7 +289,7 @@ export function updateGame(state: GameState, dt: number): GameState {
   }
 
   // Level progression
-  const newLevel = Math.floor(s.distance / 500) + 1;
+  const newLevel = Math.floor(s.distance / LEVEL_DISTANCE) + 1;
   if (newLevel > s.level) {
     s.level = newLevel;
 
@@ -362,7 +376,8 @@ export function activateAbility(state: GameState): GameState {
   const s = { ...state, abilityActive: true, abilityDurationTimer: state.character.abilityDuration, abilityCooldownTimer: state.character.abilityCooldown };
   
   if (s.character.ability === 'speed_warp') {
-    s.speed = s.worldConfig.baseSpeed * 2;
+    // Double pace is applied in updateGame; here it just refills the budget
+    s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + OVERDRIVE_REFILL);
   } else if (s.character.ability === 'relay_chain') {
     s.distance += 200;
     s.score += 200;

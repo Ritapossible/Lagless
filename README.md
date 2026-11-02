@@ -28,7 +28,8 @@ You are a packet crossing a network that is falling apart. Every run is a race a
 
 - The budget drains all the time, and fast on **red congested lanes**. At 0 ms the run times out.
 - **Teal relay lanes** and **teal diamonds** refill it and build your combo, which multiplies your score.
-- **Hazards** (crates, storm pylons and broken gates) cost hull. **Green crosses** repair it; **amber coins** add score.
+- **Hazards** (crates, storm pylons and broken gates) cost hull. **Green crosses** repair it and refill 15 ms; **amber coins** add score.
+- There is always a way through: hazards never close all three lanes at once.
 - **Collapsing lanes** flicker and sink for a few seconds, then recover as fast lanes.
 
 Each runner has one ability on a cooldown. Checkpoints save from level 10, so a long run is never lost: Retry resumes from the last checkpoint you passed.
@@ -48,7 +49,7 @@ The game pauses by itself if you switch apps or tabs mid-run.
 
 | Runner | Craft | Ability | Lasts | Recharge |
 | --- | --- | --- | --- | --- |
-| **Dart** | Slim racer | **Overdrive**: double speed and pass straight through hazards | 3 s | 10 s |
+| **Dart** | Slim racer | **Overdrive**: double speed, pass straight through hazards and refill 25 ms | 3 s | 10 s |
 | **Hopper** | Twin-pod relay courier | **Hop**: jump 200 m ahead and refill 30 ms of latency | 2 s | 12 s |
 | **Anchor** | Heavy hauler | **Clear lanes**: turn every lane back to a fast lane | 4 s | 15 s |
 | **Volt** | Road car that flies | **Lift-off**: fly above every lane, clear of all hazards | 3 s | 14 s |

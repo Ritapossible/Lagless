@@ -46,6 +46,11 @@ export interface Character {
 
 export const DEFAULT_JUMP_VELOCITY = 12;
 export const DEFAULT_GRAVITY = 25;
+/** Distance covered per level */
+export const LEVEL_DISTANCE = 300;
+/** Latency budget refilled by Overdrive and by green crosses */
+export const OVERDRIVE_REFILL = 25;
+export const HEALTH_PICKUP_REFILL = 15;
 /** Height Volt holds during Lift-off; anything over 2 clears obstacles */
 export const LIFT_OFF_HEIGHT = 3.2;
 
@@ -121,17 +126,17 @@ export interface GameState {
 export const WORLDS: WorldConfig[] = [
   // Stage 1: Congestion Zone (L1-12) — slow, dense, congested, narrow
   {
-    name: 'Congestion Zone', baseSpeed: 3.5, obstacleDensity: 0.055, laneDisableChance: 0,
-    relayFrequency: 0.008, stabilityZones: false, bgHue: 0,
-    latencyDrainRate: 1.4, latencyDrainCongested: 10, congestedLaneChance: 0.006,
+    name: 'Congestion Zone', baseSpeed: 3.5, obstacleDensity: 0.03, laneDisableChance: 0,
+    relayFrequency: 0.014, stabilityZones: false, bgHue: 0,
+    latencyDrainRate: 0.8, latencyDrainCongested: 6, congestedLaneChance: 0.006,
     relayRefillRate: 10, comboMultiplierCap: 2, visualChaosLevel: 0.7,
     mistakePenalty: 1, laneSpacing: 0.82,
   },
   // Stage 2: Fragmented Grid (L13-25) — glitchy, unpredictable, lanes disable
   {
     name: 'Fragmented Grid', baseSpeed: 5, obstacleDensity: 0.035, laneDisableChance: 0.008,
-    relayFrequency: 0.015, stabilityZones: false, bgHue: 280,
-    latencyDrainRate: 1.0, latencyDrainCongested: 8, congestedLaneChance: 0.004,
+    relayFrequency: 0.018, stabilityZones: false, bgHue: 280,
+    latencyDrainRate: 0.8, latencyDrainCongested: 6, congestedLaneChance: 0.004,
     relayRefillRate: 13, comboMultiplierCap: 2.5, visualChaosLevel: 0.85,
     mistakePenalty: 1.2, laneSpacing: 0.95,
   },

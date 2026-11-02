@@ -11,7 +11,7 @@ export const RUNNER_INFO: Record<AbilityType, RunnerInfo> = {
   speed_warp: {
     craft: 'Slim racer, quickest off the line',
     abilityName: 'Overdrive',
-    abilityText: 'Double speed and pass straight through hazards',
+    abilityText: 'Double speed, pass through hazards and refill 25 ms of latency',
   },
   relay_chain: {
     craft: 'Twin-pod relay courier',
