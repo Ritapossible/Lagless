@@ -10,7 +10,7 @@ import StartRunModal from "@/components/StartRunModal";
 const Play = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const startTrial = !!(location.state as any)?.startTrial;
+  const startTrial = !!(location.state as { startTrial?: boolean } | null)?.startTrial;
   const [hasUsername, setHasUsername] = useState(() => !!loadProgress().discordUsername);
   const [selectedChar, setSelectedChar] = useState<Character | null>(null);
   const [startLevel, setStartLevel] = useState<number | null>(startTrial ? 40 : null);

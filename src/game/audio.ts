@@ -312,7 +312,9 @@ export function stopBGM() {
   if (bgmGain) {
     bgmGain.gain.linearRampToValueAtTime(0, getCtx().currentTime + 0.5);
   }
-  bgmOscillators.forEach(o => { try { o.stop(); } catch {} });
+  bgmOscillators.forEach(o => {
+    try { o.stop(); } catch { /* already stopped */ }
+  });
   bgmOscillators = [];
 }
 
