@@ -11,7 +11,7 @@ import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 import TrialModal from "./TrialModal";
 import ScreenHeader from "./ScreenHeader";
-import { recordRun } from "@/game/leaderboard";
+import { recordRun } from "@/game/bestRuns";
 
 const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = false }: { onExit: () => void; onBack?: () => void; character?: import("@/game/types").Character; startLevel?: number; startAsTrial?: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -65,7 +65,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
         date: new Date().toISOString(),
       });
       if (rank > 0) {
-        toast(`#${rank} on your leaderboard`, { description: `${Math.floor(gs.score).toLocaleString()} points`, duration: 3000 });
+        toast(`#${rank} in your best runs`, { description: `${Math.floor(gs.score).toLocaleString()} points`, duration: 3000 });
       }
 
       // Check for newly unlocked achievements

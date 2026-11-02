@@ -5,7 +5,7 @@ import { isDailyRewardAvailable } from "@/game/dailyMissions";
 
 export const navItems = [
   { icon: Target, label: "Missions", path: "/missions" },
-  { icon: Trophy, label: "Leaderboard", path: "/leaderboard" },
+  { icon: Trophy, label: "Best runs", path: "/runs" },
   { icon: User, label: "Profile", path: "/profile" },
 ];
 

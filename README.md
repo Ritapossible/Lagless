@@ -28,7 +28,7 @@ Lagless is a 3D three-lane runner you play in the browser. You pilot a hover cra
   - Hopper, Hop: jump 200 m ahead and refill 30 ms of latency
   - Anchor, Clear lanes: turn every lane back to a fast lane
 - **Checkpoints** from level 10, so a long run can restart part-way rather than at level 1.
-- **Daily missions, achievements and a leaderboard** of your best runs on this device.
+- **Daily missions, achievements and best runs**: your top 10 scores on this device.
 - **Procedural audio**: music and sound effects are generated live with the Web Audio API. There are no audio files.
 
 ## Built with AI
@@ -38,7 +38,7 @@ Lagless is a 3D three-lane runner you play in the browser. You pilot a hover cra
   - the Three.js renderer, the five 3D worlds and the three craft, all built in code from primitives
   - the new runners and world names
   - a full interface redesign, guided by the [unslop](https://github.com/heydamir/unslop) skill by Damir Sokolovsky (CC BY 4.0)
-  - the rename to Lagless, guest play and the leaderboard
+  - the rename to Lagless, guest play and best runs
   - this README and the social preview image
 
 ## Run it locally
@@ -64,7 +64,7 @@ It deploys to Vercel as a static site with no configuration. `vercel.json` alrea
 
 React, TypeScript, Vite, Tailwind CSS and [Three.js](https://threejs.org). The game engine (`src/game/engine.ts`) owns all the rules and state; the 3D view (`src/game/three/`) only reads that state each frame, so gameplay and rendering stay separate. There are no model or texture files: every craft, hazard and building is made from simple shapes with flat shading.
 
-Progress, missions and the leaderboard are saved in the browser's `localStorage`. There is no backend and no account.
+Progress, missions and best runs are saved in the browser's `localStorage`. There is no backend and no account.
 
 ---
 

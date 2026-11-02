@@ -2,15 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BuiltByFooter from "@/components/BuiltByFooter";
 import ScreenHeader from "@/components/ScreenHeader";
-import { loadTopRuns, RunRecord } from "@/game/leaderboard";
+import { loadTopRuns, RunRecord } from "@/game/bestRuns";
 
-const Leaderboard = () => {
+const BestRuns = () => {
   const navigate = useNavigate();
   const [runs] = useState<RunRecord[]>(() => loadTopRuns());
 
   return (
     <div className="min-h-[100svh] bg-background px-6 sm:px-8">
-      <ScreenHeader title="Leaderboard" onBack={() => navigate("/")} />
+      <ScreenHeader title="Best runs" onBack={() => navigate("/")} />
       <main className="mx-auto max-w-2xl pb-16 pt-4 animate-enter">
         <p className="text-sm text-subtle">Your 10 best runs on this device</p>
 
@@ -52,4 +52,4 @@ function formatDate(iso: string): string {
   return isNaN(d.getTime()) ? "" : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-export default Leaderboard;
+export default BestRuns;

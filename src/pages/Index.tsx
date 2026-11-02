@@ -5,7 +5,7 @@ import BottomNav from "@/components/BottomNav";
 import ThreeCanvas from "@/components/ThreeCanvas";
 import { GameRenderer } from "@/game/three/GameRenderer";
 import { loadProgress } from "@/game/playerProgress";
-import { loadTopRuns } from "@/game/leaderboard";
+import { loadTopRuns } from "@/game/bestRuns";
 
 // Anchor Yards: sodium lamps match the amber accent
 const HERO_WORLD = 3;
@@ -47,8 +47,8 @@ const Index = () => {
               <Play className="h-4 w-4" strokeWidth={1.5} />
               Play
             </button>
-            <button onClick={() => navigate("/leaderboard")} className="btn-secondary">
-              Leaderboard
+            <button onClick={() => navigate("/runs")} className="btn-secondary">
+              Best runs
             </button>
           </div>
           {best && (

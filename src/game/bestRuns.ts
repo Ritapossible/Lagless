@@ -1,4 +1,4 @@
-// Local leaderboard: the best runs on this device, stored in localStorage
+// Best runs: the top scores on this device, stored in localStorage
 
 export interface RunRecord {
   score: number;
@@ -10,8 +10,9 @@ export interface RunRecord {
   date: string; // ISO timestamp
 }
 
+// Key kept from when this was called the leaderboard, so saved runs survive
 const STORAGE_KEY = 'lagless-leaderboard';
-export const LEADERBOARD_SIZE = 10;
+export const BEST_RUNS_SIZE = 10;
 
 export function loadTopRuns(): RunRecord[] {
   try {
@@ -29,7 +30,7 @@ export function recordRun(run: RunRecord): number {
   const entry = { ...run, score: Math.floor(run.score) };
   const runs = [...loadTopRuns(), entry]
     .sort((a, b) => b.score - a.score)
-    .slice(0, LEADERBOARD_SIZE);
+    .slice(0, BEST_RUNS_SIZE);
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(runs));
   } catch {

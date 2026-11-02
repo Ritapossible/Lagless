@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { loadTopRuns, recordRun, LEADERBOARD_SIZE, RunRecord } from "@/game/leaderboard";
+import { loadTopRuns, recordRun, BEST_RUNS_SIZE, RunRecord } from "@/game/bestRuns";
 
 const run = (score: number): RunRecord => ({
   score,
@@ -11,7 +11,7 @@ const run = (score: number): RunRecord => ({
   date: "2026-11-02T10:00:00.000Z",
 });
 
-describe("leaderboard", () => {
+describe("best runs", () => {
   beforeEach(() => localStorage.clear());
 
   it("starts empty", () => {
@@ -31,9 +31,9 @@ describe("leaderboard", () => {
   });
 
   it("keeps only the top runs and returns 0 for a run that does not place", () => {
-    for (let i = 1; i <= LEADERBOARD_SIZE; i++) recordRun(run(i * 10));
+    for (let i = 1; i <= BEST_RUNS_SIZE; i++) recordRun(run(i * 10));
     expect(recordRun(run(1))).toBe(0);
-    expect(loadTopRuns()).toHaveLength(LEADERBOARD_SIZE);
+    expect(loadTopRuns()).toHaveLength(BEST_RUNS_SIZE);
     expect(loadTopRuns().at(-1)?.score).toBe(10);
   });
 
