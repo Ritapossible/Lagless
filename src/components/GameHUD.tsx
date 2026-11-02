@@ -123,6 +123,11 @@ const GameHUD = ({ state, onAbility, onPause, trialTimer }: GameHUDProps) => {
         </div>
       </div>
 
+      {/* Boss wave: a steady red frame for the whole level */}
+      {state.isBossLevel && (
+        <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 0 3px rgba(229, 72, 77, 0.7), inset 0 0 120px rgba(229, 72, 77, 0.18)" }} />
+      )}
+
       {/* Running low: a steady red edge, no pulsing */}
       {budgetPercent < 25 && (
         <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 96px rgba(229, 72, 77, 0.35)" }} />

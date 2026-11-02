@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { AbilityType, GameState, LaneState, Obstacle, Pickup } from '../types';
 import { buildCraft, CraftParts, disposeObject } from './craft';
 import { LANE_COLORS, WORLD_PALETTES, WorldPalette } from './palettes';
+import { SceneEffects } from './effects';
 
 // Engine z runs from 800 (spawn) to -100; the player sits at z = 50.
 const Z_SCALE = 0.1;
@@ -55,6 +56,7 @@ export class GameRenderer {
   private craft: CraftParts | null = null;
   private craftAbility: AbilityType | null = null;
   private shadow: THREE.Mesh;
+  private effects: SceneEffects;
 
   private world = 0;
   private time = 0;
@@ -99,6 +101,7 @@ export class GameRenderer {
     this.buildSkyline();
     this.dashes = this.buildDashes();
     this.streaks = this.buildStreaks();
+    this.effects = new SceneEffects(this.scene);
 
     this.shadow = new THREE.Mesh(
       new THREE.CircleGeometry(1, 20),
@@ -444,6 +447,16 @@ export class GameRenderer {
     const warp = state.abilityActive && state.character.ability === 'speed_warp';
     this.placeCraft(x, state.playerY * JUMP_SCALE, dt, state.abilityActive, warp);
     this.placeCamera(x, dt, warp);
+    this.effects.update({
+      world: state.world,
+      scroll: state.distance * SCROLL_PER_DISTANCE,
+      speed: state.speed,
+      time: this.time,
+      dt,
+      craftX: x,
+      ability: state.character.ability,
+      abilityActive: state.abilityActive,
+    });
 
     this.renderer.render(this.scene, this.camera);
   }
@@ -459,6 +472,7 @@ export class GameRenderer {
     this.placePickups([]);
     const x = laneX(1) + Math.sin(this.time * 0.35) * 0.6;
     this.placeCraft(x, 0, dt, false, false);
+    this.effects.update({ world, scroll: this.attractScroll, speed: 4, time: this.time, dt, craftX: x, ability: null, abilityActive: false });
     // Craft sits right of centre so the headline has calm space on the left
     const portrait = this.camera.aspect < 0.8;
     this.camera.position.set(portrait ? 0 : -1.5, portrait ? 5.5 : 3.6, portrait ? 11 : 7.5);
