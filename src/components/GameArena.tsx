@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import GameHUD from "./GameHUD";
 import GameOverScreen from "./GameOverScreen";
 import OptimumTrialModal from "./OptimumTrialModal";
+import { recordRun } from "@/game/leaderboard";
 
 const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = false }: { onExit: () => void; onBack?: () => void; character?: import("@/game/types").Character; startLevel?: number; startAsTrial?: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -52,6 +53,19 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
         progress = updateAfterRun(gs.level, gs.score, Math.max(gs.bestCombo, gs.comboMultiplier));
       }
       
+      const rank = recordRun({
+        score: gs.score,
+        level: gs.level,
+        world: gs.worldConfig.name,
+        character: gs.character.name,
+        bestCombo: Math.max(gs.bestCombo, gs.comboMultiplier),
+        victory: isVictory,
+        date: new Date().toISOString(),
+      });
+      if (rank > 0) {
+        toast(`🏆 #${rank} on your leaderboard`, { description: `${Math.floor(gs.score).toLocaleString()} points`, duration: 3000 });
+      }
+
       // Check for newly unlocked achievements
       const newAchievements = findNewAchievements(progressBefore, progress);
       newAchievements.forEach((a, i) => {

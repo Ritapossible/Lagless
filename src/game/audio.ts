@@ -1,4 +1,4 @@
-// Procedural audio system for Latency Escape using Web Audio API
+// Procedural audio system for Lagless using Web Audio API
 
 let audioCtx: AudioContext | null = null;
 let bgmGain: GainNode | null = null;

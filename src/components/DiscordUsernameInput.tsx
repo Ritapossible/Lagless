@@ -20,6 +20,11 @@ const DiscordUsernameInput = ({ onContinue }: Props) => {
     onContinue();
   };
 
+  const handleGuest = () => {
+    setDiscordUsername("Guest");
+    onContinue();
+  };
+
   // If already has username, skip
   useEffect(() => {
     if (existing) onContinue();
@@ -82,6 +87,13 @@ const DiscordUsernameInput = ({ onContinue }: Props) => {
             active:scale-[0.97] transition-all duration-200 neon-box"
         >
           Continue
+        </button>
+
+        <button
+          onClick={handleGuest}
+          className="mt-4 font-display text-xs tracking-widest uppercase text-muted-foreground hover:text-foreground active:scale-95 transition-all"
+        >
+          Play as guest
         </button>
       </div>
     </div>
