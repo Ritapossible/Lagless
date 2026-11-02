@@ -28,10 +28,8 @@ const Index = () => {
 
         {/* Title */}
         <div className="mb-10 text-center opacity-0 animate-slide-up" style={{ animationDelay: "0.3s" }}>
-          <h1 className="font-display text-5xl sm:text-6xl font-black tracking-wider leading-[1.05] neon-glow">
-            Latency
-            <br />
-            Escape
+          <h1 className="font-display text-6xl sm:text-7xl font-black tracking-wider leading-[1.05] neon-glow">
+            Lagless
           </h1>
         </div>
 

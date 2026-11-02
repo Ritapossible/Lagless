@@ -1,4 +1,4 @@
-import { Target, Trophy, ShoppingBag, User } from "lucide-react";
+import { Target, Trophy, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -6,8 +6,7 @@ import { isDailyRewardAvailable } from "@/game/dailyMissions";
 
 const navItems = [
   { icon: Target, label: "Missions", path: "/missions", comingSoon: false },
-  { icon: Trophy, label: "Leaderboard", path: "/", comingSoon: true },
-  { icon: ShoppingBag, label: "Shop", path: "/", comingSoon: true },
+  { icon: Trophy, label: "Leaderboard", path: "/leaderboard", comingSoon: false },
   { icon: User, label: "Profile", path: "/profile", comingSoon: false },
 ];
 
