@@ -248,6 +248,18 @@ export class GameRenderer {
     if (type === 'relay') {
       const m = new THREE.MeshLambertMaterial({ color: 0x0b2b28, emissive: 0x2fd1bf, emissiveIntensity: 1.3, flatShading: true });
       g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.42, 0), m));
+      // New-player beacon: a ring on the lane and a beam up through the diamond, blinking
+      const beaconMat = new THREE.MeshBasicMaterial({ color: 0x5ff2df, transparent: true, opacity: 0.8, depthWrite: false });
+      const beacon = new THREE.Group();
+      beacon.name = 'beacon';
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.06, 4, 24), beaconMat);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = -0.9;
+      const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 4, 6), beaconMat);
+      beam.position.y = 1.2;
+      beacon.add(ring, beam);
+      beacon.visible = false;
+      g.add(beacon);
     } else if (type === 'health') {
       const m = new THREE.MeshLambertMaterial({ color: 0x0f2a1a, emissive: 0x4cc38a, emissiveIntensity: 1.2, flatShading: true });
       g.add(new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.22), m));
@@ -324,7 +336,8 @@ export class GameRenderer {
     this.dashes.instanceMatrix.needsUpdate = true;
   }
 
-  private updateLanes(states: LaneState[], dt: number) {
+  private updateLanes(states: LaneState[], dt: number, highlightRelays = false) {
+    const blink = 0.5 + 0.5 * Math.sin(this.time * 9);
     const tmp = new THREE.Color();
     states.forEach((state, i) => {
       const lane = this.lanes[i];
@@ -333,7 +346,7 @@ export class GameRenderer {
       lane.mat.color.copy(lane.color);
       const pulse = state === 'collapsing' ? 0.5 + 0.5 * Math.sin(this.time * 18) : 0;
       lane.mat.emissive.setHex(state === 'relay' ? 0x0d4a43 : state === 'collapsing' ? 0x5a0f0b : 0x000000);
-      lane.mat.emissiveIntensity = state === 'collapsing' ? pulse : 1;
+      lane.mat.emissiveIntensity = state === 'collapsing' ? pulse : state === 'relay' && highlightRelays ? 1 + blink * 2.5 : 1;
       lane.mesh.position.y = state === 'collapsing' ? -0.12 - pulse * 0.05 : 0;
     });
   }
@@ -366,7 +379,8 @@ export class GameRenderer {
     }
   }
 
-  private placePickups(pickups: Pickup[]) {
+  private placePickups(pickups: Pickup[], highlightRelays: boolean) {
+    const blink = 0.5 + 0.5 * Math.sin(this.time * 9);
     const used = { relay: 0, health: 0, score: 0 };
     for (const p of pickups) {
       if (p.collected) continue;
@@ -377,6 +391,14 @@ export class GameRenderer {
       g.visible = true;
       g.position.set(laneX(p.lane), 1.0 + Math.sin(this.time * 3 + p.z * 0.05) * 0.12, toWorldZ(p.z));
       g.rotation.y = this.time * 2;
+      const beacon = g.getObjectByName('beacon');
+      if (beacon) {
+        beacon.visible = highlightRelays;
+        if (highlightRelays) {
+          beacon.scale.setScalar(1 + blink * 0.25);
+          ((beacon.children[0] as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = 0.25 + blink * 0.7;
+        }
+      }
     }
     for (const type of Object.keys(this.pickupPools) as Pickup['type'][]) {
       this.pickupPools[type].forEach((g, i) => { if (i >= used[type]) g.visible = false; });
@@ -426,7 +448,8 @@ export class GameRenderer {
     this.shake = Math.max(0, this.shake - dt * 1.6);
   }
 
-  render(state: GameState, dt: number) {
+  /** highlightRelays makes relay diamonds and lanes blink, for players still learning */
+  render(state: GameState, dt: number, highlightRelays = false) {
     this.time += dt;
     this.setCharacter(state.character.ability);
     if (state.audioEvents.hit) this.shake = 0.45;
@@ -437,9 +460,9 @@ export class GameRenderer {
 
     this.blendPalette(state.world, state.isBossLevel, dt);
     this.updateScroll(state.distance * SCROLL_PER_DISTANCE);
-    this.updateLanes(state.lanes.map(l => l.state), dt);
+    this.updateLanes(state.lanes.map(l => l.state), dt, highlightRelays);
     this.placeObstacles(state.obstacles);
-    this.placePickups(state.pickups);
+    this.placePickups(state.pickups, highlightRelays);
 
     const from = laneX(state.currentLane);
     const to = laneX(state.targetLane);
@@ -469,7 +492,7 @@ export class GameRenderer {
     this.updateScroll(this.attractScroll);
     this.updateLanes(['fast', 'relay', 'fast'], dt);
     this.placeObstacles([]);
-    this.placePickups([]);
+    this.placePickups([], false);
     const x = laneX(1) + Math.sin(this.time * 0.35) * 0.6;
     this.placeCraft(x, 0, dt, false, false);
     this.effects.update({ world, scroll: this.attractScroll, speed: 4, time: this.time, dt, craftX: x, ability: null, abilityActive: false });

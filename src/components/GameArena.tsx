@@ -12,6 +12,7 @@ import GameOverScreen from "./GameOverScreen";
 import TrialModal from "./TrialModal";
 import ScreenHeader from "./ScreenHeader";
 import { recordRun } from "@/game/bestRuns";
+import { isNewPlayer, relayHintActive } from "@/game/relayHint";
 
 const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = false }: { onExit: () => void; onBack?: () => void; character?: import("@/game/types").Character; startLevel?: number; startAsTrial?: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -30,6 +31,10 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
   const trialActiveRef = useRef(startAsTrial);
   const trialRunRef = useRef(startAsTrial); // tracks if current/last run was a trial
   const trialTimerRef = useRef(startAsTrial ? 60 : 0);
+  // Relay coaching for new players: seconds flown this run, and whether this player still needs it
+  const runTimeRef = useRef(0);
+  const coachRef = useRef(!startAsTrial && isNewPlayer(loadProgress().totalRuns));
+  const showRelayHint = () => relayHintActive(coachRef.current, runTimeRef.current, stateRef.current.relaysUsed);
 
   // Start game + BGM after instructions dismissed
   useEffect(() => {
@@ -171,7 +176,8 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
       }
       if (ae.gameOver) { playGameOver(); stopBGM(); }
 
-      view.render(stateRef.current, dt);
+      if (stateRef.current.running && !stateRef.current.paused) runTimeRef.current += dt;
+      view.render(stateRef.current, dt, showRelayHint());
 
       hudCounter++;
       if (hudCounter % 4 === 0) {
@@ -280,6 +286,8 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     stateRef.current = createInitialState(characterRef.current, restartLevel);
     stateRef.current.running = true;
     lastTimeRef.current = 0;
+    runTimeRef.current = 0;
+    coachRef.current = isNewPlayer(loadProgress().totalRuns);
     setShowGameOver(false);
     setTrialChecked(false);
     setHudState(stateRef.current);
@@ -300,6 +308,8 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     stateRef.current = createInitialState(characterRef.current, 40);
     stateRef.current.running = true;
     lastTimeRef.current = 0;
+    runTimeRef.current = 0;
+    coachRef.current = false;
     setShowGameOver(false);
     // Reset trialChecked so after this trial ends, we check for remaining trials
     setTrialChecked(false);
@@ -326,6 +336,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
           onAbility={handleAbility}
           onPause={handlePause}
           trialTimer={trialActiveRef.current ? Math.max(0, trialTimerRef.current) : undefined}
+          relayHint={showRelayHint()}
         />
       )}
       {showGameOver && !showTrialModal && (

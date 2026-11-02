@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pause, Volume2, VolumeX, Zap, FastForward, Layers } from "lucide-react";
+import { Pause, Volume2, VolumeX, Zap, FastForward, Layers, Diamond } from "lucide-react";
 import { AbilityType, GameState } from "@/game/types";
 import { toggleMute, isMuted } from "@/game/audio";
 
@@ -8,6 +8,8 @@ interface GameHUDProps {
   onAbility: () => void;
   onPause: () => void;
   trialTimer?: number;
+  /** New players: point at what refills the latency budget */
+  relayHint?: boolean;
 }
 
 const ABILITY_ICONS: Record<AbilityType, typeof Zap> = {
@@ -23,7 +25,7 @@ function budgetTone(percent: number) {
   return { text: "text-destructive", bar: "bg-destructive" };
 }
 
-const GameHUD = ({ state, onAbility, onPause, trialTimer }: GameHUDProps) => {
+const GameHUD = ({ state, onAbility, onPause, trialTimer, relayHint }: GameHUDProps) => {
   const [muted, setMuted] = useState(isMuted());
   const hullPercent = (state.health / state.maxHealth) * 100;
   const budgetPercent = (state.latencyBudget / state.maxLatency) * 100;
@@ -92,6 +94,16 @@ const GameHUD = ({ state, onAbility, onPause, trialTimer }: GameHUDProps) => {
           <p className="mt-1.5 font-mono text-xs tabular-nums text-primary">Trial {Math.ceil(trialTimer)} s left</p>
         )}
       </div>
+
+      {/* First-run coaching: blinks until the player has the idea, then goes away */}
+      {relayHint && (
+        <div className="mt-3 flex justify-center px-4" role="status">
+          <p className="flex items-center gap-2 rounded-xl border border-relay/60 bg-background/80 px-4 py-2 text-sm backdrop-blur animate-blink">
+            <Diamond className="h-4 w-4 shrink-0 fill-relay text-relay" strokeWidth={1.5} />
+            Teal diamonds and lanes refill your ms
+          </p>
+        </div>
+      )}
 
       {/* Bottom row */}
       <div className="pointer-events-auto absolute inset-x-0 bottom-0 flex items-end justify-between px-4 pb-6 sm:px-6">
