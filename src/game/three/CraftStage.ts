@@ -1,7 +1,7 @@
 // Turntable used on the runner select screen
 import * as THREE from 'three';
 import { AbilityType } from '../types';
-import { buildCraft, CraftParts, disposeObject } from './craft';
+import { buildCraft, CraftParts, disposeObject, updateFlyingCar } from './craft';
 
 export class CraftStage {
   private renderer: THREE.WebGLRenderer;
@@ -61,7 +61,15 @@ export class CraftStage {
   render(dt: number) {
     this.time += dt;
     this.pivot.rotation.y = -0.6 + this.time * 0.5;
-    if (this.craft) this.craft.root.position.y = 0.15 + Math.sin(this.time * 2) * 0.05;
+    if (this.craft?.car) {
+      // Volt sits on its wheels, then lifts off on its jets every few seconds to show what it does
+      const lift = Math.max(0, Math.sin(this.time * 0.9));
+      updateFlyingCar(this.craft, lift > 0.15, dt, this.time, this.time * 3);
+      this.craft.root.position.y = 0.05 + lift * 0.45;
+      this.craft.root.scale.setScalar(0.85);
+    } else if (this.craft) {
+      this.craft.root.position.y = 0.15 + Math.sin(this.time * 2) * 0.05;
+    }
     this.renderer.render(this.scene, this.camera);
   }
 

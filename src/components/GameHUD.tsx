@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pause, Volume2, VolumeX, Zap, FastForward, Layers, Diamond } from "lucide-react";
+import { Pause, Volume2, VolumeX, Zap, FastForward, Layers, Diamond, PlaneTakeoff } from "lucide-react";
 import { AbilityType, GameState } from "@/game/types";
 import { toggleMute, isMuted } from "@/game/audio";
 
@@ -16,6 +16,7 @@ const ABILITY_ICONS: Record<AbilityType, typeof Zap> = {
   speed_warp: Zap,
   relay_chain: FastForward,
   node_deploy: Layers,
+  lift_off: PlaneTakeoff,
 };
 
 // Latency budget is measured in ms; colour shifts as it runs out

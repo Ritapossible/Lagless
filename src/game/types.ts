@@ -23,7 +23,7 @@ export interface Pickup {
   collected: boolean;
 }
 
-export type AbilityType = 'speed_warp' | 'relay_chain' | 'node_deploy';
+export type AbilityType = 'speed_warp' | 'relay_chain' | 'node_deploy' | 'lift_off';
 
 export interface FloatingText {
   text: string;
@@ -38,7 +38,16 @@ export interface Character {
   ability: AbilityType;
   abilityDuration: number;
   abilityCooldown: number;
+  /** Jump launch speed; defaults to DEFAULT_JUMP_VELOCITY */
+  jumpVelocity?: number;
+  /** Gravity while airborne; defaults to DEFAULT_GRAVITY */
+  gravity?: number;
 }
+
+export const DEFAULT_JUMP_VELOCITY = 12;
+export const DEFAULT_GRAVITY = 25;
+/** Height Volt holds during Lift-off; anything over 2 clears obstacles */
+export const LIFT_OFF_HEIGHT = 3.2;
 
 export interface WorldConfig {
   name: string;
@@ -156,4 +165,6 @@ export const CHARACTERS: Character[] = [
   { name: 'Dart', ability: 'speed_warp', abilityDuration: 3000, abilityCooldown: 10000 },
   { name: 'Hopper', ability: 'relay_chain', abilityDuration: 2000, abilityCooldown: 12000 },
   { name: 'Anchor', ability: 'node_deploy', abilityDuration: 4000, abilityCooldown: 15000 },
+  // A road car that flies when it jumps: higher and floatier, so it clears more but lands later
+  { name: 'Volt', ability: 'lift_off', abilityDuration: 3000, abilityCooldown: 14000, jumpVelocity: 14, gravity: 18 },
 ];

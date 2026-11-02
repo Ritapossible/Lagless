@@ -1,4 +1,4 @@
-// Hover craft for the three runners, built from primitives so the game ships no model files
+// Craft for the four runners, built from primitives so the game ships no model files
 import * as THREE from 'three';
 import { AbilityType } from '../types';
 
@@ -10,6 +10,13 @@ export interface CraftParts {
   glow: THREE.MeshLambertMaterial[];
   /** Ring shown while the ability runs */
   shield: THREE.Mesh;
+  /** Volt only: drives on wheels and flies on thrusters, see updateFlyingCar */
+  car?: {
+    wheels: { fold: THREE.Group; spin: THREE.Group }[];
+    jets: THREE.Group;
+    flames: THREE.Mesh[];
+    fold: number;
+  };
 }
 
 interface CraftLook {
@@ -23,6 +30,7 @@ export const CRAFT_LOOKS: Record<AbilityType, CraftLook> = {
   speed_warp: { hull: 0xe9e6df, trim: 0xf2a33a, canopy: 0x1d2633, glow: 0xffb54d },
   relay_chain: { hull: 0xdfe7e6, trim: 0x2fb6a8, canopy: 0x17262a, glow: 0x5ff2df },
   node_deploy: { hull: 0x3b4250, trim: 0xe0663a, canopy: 0x121820, glow: 0xff8a52 },
+  lift_off: { hull: 0xf1f2f4, trim: 0xe5484d, canopy: 0x10141c, glow: 0x7cc4ff },
 };
 
 const flat = (color: number) => new THREE.MeshLambertMaterial({ color, flatShading: true });
@@ -102,10 +110,89 @@ function buildAnchor(look: CraftLook, glow: THREE.MeshLambertMaterial) {
   return g;
 }
 
+// Side profile (z forward-to-back, y up) extruded across the car's width
+function profile(points: [number, number][], width: number, mat: THREE.Material) {
+  const shape = new THREE.Shape(points.map(([z, y]) => new THREE.Vector2(z, y)));
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: width, bevelEnabled: false });
+  geo.rotateY(-Math.PI / 2);
+  geo.translate(width / 2, 0, 0);
+  return new THREE.Mesh(geo, mat);
+}
+
+// Volt: a low road coupe with four wheels that fold flat and four thrusters that fire when it flies
+function buildVolt(look: CraftLook, glow: THREE.MeshLambertMaterial) {
+  const g = new THREE.Group();
+  const hull = flat(look.hull), canopy = flat(look.canopy), dark = flat(0x1a1d24);
+  const tail = new THREE.MeshLambertMaterial({ color: 0x220808, emissive: look.trim, emissiveIntensity: 1.6 });
+  const head = new THREE.MeshLambertMaterial({ color: 0x222222, emissive: 0xffffff, emissiveIntensity: 1.2 });
+
+  g.add(profile([[-1.6, 0.3], [-1.6, 0.4], [-0.7, 0.6], [-0.15, 0.92], [0.55, 0.92], [1.5, 0.62], [1.5, 0.3]], 1.6, hull));
+  const glass = profile([[-0.62, 0.62], [-0.15, 0.95], [0.5, 0.95], [1.05, 0.7], [1.05, 0.62]], 1.3, canopy);
+  glass.position.y = 0.005;
+  g.add(glass);
+  g.add(box(1.5, 0.05, 0.04, tail, 0, 0.6, 1.52));
+  g.add(box(1.3, 0.04, 0.04, head, 0, 0.42, -1.62));
+
+  // Wheels: fold group turns the wheel flat for flight, spin group rolls it on the road
+  const wheelMat = flat(0x15171c);
+  const wheels: { fold: THREE.Group; spin: THREE.Group }[] = [];
+  for (const [x, z] of [[-0.82, -1.0], [0.82, -1.0], [-0.82, 1.0], [0.82, 1.0]]) {
+    const fold = new THREE.Group();
+    fold.position.set(x, 0.26, z);
+    const spin = new THREE.Group();
+    const tyre = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.2, 12), wheelMat);
+    tyre.rotation.z = Math.PI / 2;
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.21, 8), hull);
+    hub.rotation.z = Math.PI / 2;
+    spin.add(tyre, hub);
+    fold.add(spin);
+    g.add(fold);
+    wheels.push({ fold, spin });
+  }
+
+  // Thrusters under the floor, with flames that only show in flight
+  const jets = new THREE.Group();
+  const flames: THREE.Mesh[] = [];
+  const flameMat = new THREE.MeshBasicMaterial({ color: look.glow, transparent: true, opacity: 0.75, depthWrite: false });
+  for (const [x, z] of [[-0.5, -0.75], [0.5, -0.75], [-0.5, 0.75], [0.5, 0.75]]) {
+    const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.12, 0.1, 10), dark);
+    nozzle.position.set(x, 0.25, z);
+    const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.02, 10), glow);
+    ring.position.set(x, 0.19, z);
+    g.add(nozzle, ring);
+    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.14, 1, 10, 1, true), flameMat);
+    flame.rotation.x = Math.PI;
+    flame.position.set(x, -0.3, z);
+    jets.add(flame);
+    flames.push(flame);
+  }
+  jets.visible = false;
+  g.add(jets);
+  return { group: g, car: { wheels, jets, flames, fold: 0 } };
+}
+
+/** Rolls the wheels on the road, or folds them flat and fires the jets in the air */
+export function updateFlyingCar(parts: CraftParts, flying: boolean, dt: number, time: number, roll: number) {
+  const car = parts.car;
+  if (!car) return;
+  car.fold += ((flying ? 1 : 0) - car.fold) * Math.min(1, dt * 10);
+  for (const w of car.wheels) {
+    w.fold.rotation.z = (w.fold.position.x < 0 ? -1 : 1) * car.fold * (Math.PI / 2);
+    if (!flying) w.spin.rotation.x = -roll;
+  }
+  car.jets.visible = car.fold > 0.2;
+  car.flames.forEach((f, i) => {
+    f.scale.set(1, 0.7 + car.fold * 0.5 + Math.sin(time * 40 + i * 1.7) * 0.12, 1);
+    f.position.y = 0.2 - f.scale.y * 0.5;
+  });
+}
+
 export function buildCraft(ability: AbilityType): CraftParts {
   const look = CRAFT_LOOKS[ability];
   const glow = new THREE.MeshLambertMaterial({ color: 0x222222, emissive: look.glow, emissiveIntensity: 0.9, flatShading: true });
-  const body = ability === 'speed_warp' ? buildDart(look, glow)
+  const volt = ability === 'lift_off' ? buildVolt(look, glow) : null;
+  const body = volt ? volt.group
+    : ability === 'speed_warp' ? buildDart(look, glow)
     : ability === 'relay_chain' ? buildHopper(look, glow)
     : buildAnchor(look, glow);
 
@@ -121,7 +208,7 @@ export function buildCraft(ability: AbilityType): CraftParts {
   const bank = new THREE.Group();
   bank.add(body);
   root.add(bank, shield);
-  return { root, body: bank, glow: [glow], shield };
+  return { root, body: bank, glow: [glow], shield, car: volt?.car };
 }
 
 export function disposeObject(obj: THREE.Object3D) {

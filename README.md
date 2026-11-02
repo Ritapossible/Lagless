@@ -23,10 +23,11 @@ Lagless is a 3D three-lane runner you play in the browser. You pilot a hover cra
 ## What's in it
 
 - **Five worlds**, each with its own speed, hazards, palette and scenery: Congestion Zone, Fragmented Grid, Mesh Awakening, Anchor Yards and Clear Channel, with boss waves at levels 25 and 39.
-- **Three hover craft**, each with an ability:
+- **Four runners**, each with an ability:
   - Dart, Overdrive: double speed and pass straight through hazards
   - Hopper, Hop: jump 200 m ahead and refill 30 ms of latency
   - Anchor, Clear lanes: turn every lane back to a fast lane
+  - Volt, Lift-off: a road car that flies. Its wheels fold and four thrusters fire when it jumps, so its jump goes higher and lasts longer; Lift-off holds it above every lane for 3 s
 - **Checkpoints** from level 10, so a long run can restart part-way rather than at level 1.
 - **Daily missions, achievements and best runs**: your top 10 scores on this device.
 - **Procedural audio**: music and sound effects are generated live with the Web Audio API. There are no audio files.
@@ -35,7 +36,7 @@ Lagless is a 3D three-lane runner you play in the browser. You pilot a hover cra
 
 - **[Lovable](https://lovable.dev)** generated the original game from prompts: the engine, the canvas renderer, the UI and the progression systems.
 - **[Claude Code](https://claude.com/claude-code)** made the November 2026 updates:
-  - the Three.js renderer, the five 3D worlds and the three craft, all built in code from primitives
+  - the Three.js renderer, the five 3D worlds and the four runners, all built in code from primitives
   - the new runners and world names
   - a full interface redesign, guided by the [unslop](https://github.com/heydamir/unslop) skill by Damir Sokolovsky (CC BY 4.0)
   - the rename to Lagless, guest play and best runs

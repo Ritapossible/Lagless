@@ -53,7 +53,7 @@ const CharacterSelect = ({ onSelect, onBack }: Props) => {
             </dl>
           </div>
 
-          <div className="mt-6 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Runner">
+          <div className="mt-6 grid grid-cols-4 gap-2" role="radiogroup" aria-label="Runner">
             {CHARACTERS.map((char, i) => (
               <button
                 key={char.name}

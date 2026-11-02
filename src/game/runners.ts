@@ -23,4 +23,9 @@ export const RUNNER_INFO: Record<AbilityType, RunnerInfo> = {
     abilityName: 'Clear lanes',
     abilityText: 'Turn every lane back to a fast lane',
   },
+  lift_off: {
+    craft: 'Road car that flies: its jump goes higher and lasts longer',
+    abilityName: 'Lift-off',
+    abilityText: 'Fly above every lane for 3 s, clear of all hazards',
+  },
 };

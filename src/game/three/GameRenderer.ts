@@ -1,7 +1,7 @@
 // Three.js view of the game. It only reads GameState; the engine stays the single source of truth.
 import * as THREE from 'three';
 import { AbilityType, GameState, LaneState, Obstacle, Pickup } from '../types';
-import { buildCraft, CraftParts, disposeObject } from './craft';
+import { buildCraft, CraftParts, disposeObject, updateFlyingCar } from './craft';
 import { LANE_COLORS, WORLD_PALETTES, WorldPalette } from './palettes';
 import { SceneEffects } from './effects';
 
@@ -67,6 +67,9 @@ export class GameRenderer {
   private attractScroll = 0;
   private dummy = new THREE.Object3D();
   private paletteReady = false;
+  // Dust kicked up when the flying car takes off or lands
+  private dust: { mesh: THREE.Mesh; life: number; vx: number; vz: number }[] = [];
+  private wasFlying = false;
 
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -405,12 +408,22 @@ export class GameRenderer {
     }
   }
 
-  private placeCraft(x: number, y: number, dt: number, ability: boolean, warp: boolean) {
+  private placeCraft(x: number, y: number, dt: number, ability: boolean, warp: boolean, scroll: number) {
     if (!this.craft) return;
-    const { root, body, glow, shield } = this.craft;
+    const { root, body, glow, shield, car } = this.craft;
     const vx = dt > 0 ? (x - this.lastX) / dt : 0;
     this.lastX = x;
-    root.position.set(x, y + 0.25 + Math.sin(this.time * 4) * 0.05, 0);
+    if (car) {
+      // Volt drives on its wheels and only floats once its thrusters fire
+      const flying = y > 0.05;
+      updateFlyingCar(this.craft, flying, dt, this.time, scroll / 0.26);
+      if (flying !== this.wasFlying) this.kickDust(x);
+      this.wasFlying = flying;
+      root.position.set(x, y + (flying ? Math.sin(this.time * 5) * 0.04 : 0), 0);
+    } else {
+      root.position.set(x, y + 0.25 + Math.sin(this.time * 4) * 0.05, 0);
+    }
+    this.updateDust(dt);
     body.rotation.z += (THREE.MathUtils.clamp(-vx * 0.05, -0.45, 0.45) - body.rotation.z) * Math.min(1, dt * 12);
     body.rotation.x = THREE.MathUtils.clamp(y * 0.08, 0, 0.25);
     shield.visible = ability;
@@ -431,6 +444,38 @@ export class GameRenderer {
         this.streaks.setMatrixAt(i, this.dummy.matrix);
       }
       this.streaks.instanceMatrix.needsUpdate = true;
+    }
+  }
+
+  private kickDust(x: number) {
+    if (this.dust.length === 0) {
+      const mat = new THREE.MeshBasicMaterial({ color: 0xd9d4cc, transparent: true, opacity: 0.35, depthWrite: false });
+      for (let i = 0; i < 10; i++) {
+        const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.2, 0), mat.clone());
+        mesh.visible = false;
+        this.scene.add(mesh);
+        this.dust.push({ mesh, life: 0, vx: 0, vz: 0 });
+      }
+    }
+    this.dust.forEach((d, i) => {
+      const a = (i / this.dust.length) * Math.PI * 2;
+      d.life = 1;
+      d.vx = Math.cos(a) * 2.2;
+      d.vz = Math.sin(a) * 1.2;
+      d.mesh.position.set(x + Math.cos(a) * 0.6, 0.25, Math.sin(a) * 0.8);
+      d.mesh.visible = true;
+    });
+  }
+
+  private updateDust(dt: number) {
+    for (const d of this.dust) {
+      if (d.life <= 0) continue;
+      d.life = Math.max(0, d.life - dt * 1.6);
+      d.mesh.position.x += d.vx * dt;
+      d.mesh.position.z += d.vz * dt + dt * 4;
+      d.mesh.scale.setScalar(1 + (1 - d.life) * 1.5);
+      (d.mesh.material as THREE.MeshBasicMaterial).opacity = 0.35 * d.life;
+      d.mesh.visible = d.life > 0;
     }
   }
 
@@ -468,7 +513,7 @@ export class GameRenderer {
     const to = laneX(state.targetLane);
     const x = from + (to - from) * easeOut(state.laneChangeProgress);
     const warp = state.abilityActive && state.character.ability === 'speed_warp';
-    this.placeCraft(x, state.playerY * JUMP_SCALE, dt, state.abilityActive, warp);
+    this.placeCraft(x, state.playerY * JUMP_SCALE, dt, state.abilityActive, warp, state.distance * SCROLL_PER_DISTANCE);
     this.placeCamera(x, dt, warp);
     this.effects.update({
       world: state.world,
@@ -494,7 +539,7 @@ export class GameRenderer {
     this.placeObstacles([]);
     this.placePickups([], false);
     const x = laneX(1) + Math.sin(this.time * 0.35) * 0.6;
-    this.placeCraft(x, 0, dt, false, false);
+    this.placeCraft(x, 0, dt, false, false, this.attractScroll);
     this.effects.update({ world, scroll: this.attractScroll, speed: 4, time: this.time, dt, craftX: x, ability: null, abilityActive: false });
     // Craft sits right of centre so the headline has calm space on the left
     const portrait = this.camera.aspect < 0.8;

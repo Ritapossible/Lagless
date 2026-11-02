@@ -1,4 +1,4 @@
-import { GameState, Obstacle, Pickup, WORLDS, CHARACTERS, LaneState } from './types';
+import { GameState, Obstacle, Pickup, WORLDS, CHARACTERS, LaneState, DEFAULT_JUMP_VELOCITY, DEFAULT_GRAVITY, LIFT_OFF_HEIGHT } from './types';
 
 const BOSS_LEVELS = [25, 39];
 
@@ -89,9 +89,14 @@ export function updateGame(state: GameState, dt: number): GameState {
   }
 
   // Jump physics
-  if (s.isJumping) {
+  if (s.abilityActive && s.character.ability === 'lift_off') {
+    // Lift-off: climb to cruising height and hold it; when the ability ends the car falls as from a jump
+    s.playerY += (LIFT_OFF_HEIGHT - s.playerY) * Math.min(1, dt * 6);
+    s.playerVelocityY = 0;
+    s.isJumping = true;
+  } else if (s.isJumping) {
     s.playerY += s.playerVelocityY * dt;
-    s.playerVelocityY -= 25 * dt;
+    s.playerVelocityY -= (s.character.gravity ?? DEFAULT_GRAVITY) * dt;
     if (s.playerY <= 0) {
       s.playerY = 0;
       s.playerVelocityY = 0;
@@ -349,7 +354,7 @@ export function switchLane(state: GameState, direction: -1 | 1): GameState {
 
 export function jump(state: GameState): GameState {
   if (state.isJumping) return state;
-  return { ...state, isJumping: true, playerVelocityY: 12, playerY: 0.1 };
+  return { ...state, isJumping: true, playerVelocityY: state.character.jumpVelocity ?? DEFAULT_JUMP_VELOCITY, playerY: 0.1 };
 }
 
 export function activateAbility(state: GameState): GameState {
