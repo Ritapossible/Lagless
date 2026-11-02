@@ -20,6 +20,7 @@ A 3D three-lane runner you play in the browser. Race a hover craft, or a car tha
 - [Built with AI](#built-with-ai)
 - [Roadmap](#roadmap)
 - [Credits](#credits)
+- [License](#license)
 
 ## Gameplay
 
@@ -169,3 +170,9 @@ What comes next, roughly in order:
 - Interface redesign guided by [unslop](https://github.com/heydamir/unslop) by Damir Sokolovsky, licensed CC BY 4.0
 - Fonts: [Space Grotesk](https://fonts.google.com/specimen/Space+Grotesk) and [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono), SIL Open Font License
 - 3D: [Three.js](https://threejs.org), MIT License; icons: [Lucide](https://lucide.dev), ISC License
+
+## License
+
+Lagless is released under the [MIT License](LICENSE). © 2026 Rita Egwuatu.
+
+Third-party libraries, fonts and the unslop guidance keep their own licences, listed under [Credits](#credits).
