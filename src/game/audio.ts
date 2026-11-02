@@ -323,3 +323,10 @@ export function resumeAudio() {
     audioCtx.resume();
   }
 }
+
+// Silence everything while the page is in the background
+export function suspendAudio() {
+  if (audioCtx?.state === 'running') {
+    audioCtx.suspend();
+  }
+}

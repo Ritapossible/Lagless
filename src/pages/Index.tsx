@@ -4,7 +4,6 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import ThreeCanvas from "@/components/ThreeCanvas";
 import { GameRenderer } from "@/game/three/GameRenderer";
-import { loadProgress } from "@/game/playerProgress";
 import { loadTopRuns } from "@/game/bestRuns";
 
 // Anchor Yards: sodium lamps match the amber accent
@@ -12,13 +11,12 @@ const HERO_WORLD = 3;
 
 const createHero = (canvas: HTMLCanvasElement) => {
   const view = new GameRenderer(canvas);
-  view.setCharacter("speed_warp");
+  view.setCharacter("lift_off");
   return view;
 };
 
 const Index = () => {
   const navigate = useNavigate();
-  const progress = loadProgress();
   const best = loadTopRuns()[0];
 
   return (
@@ -40,7 +38,7 @@ const Index = () => {
             Outrun the lag
           </h1>
           <p className="mt-4 max-w-md text-lg leading-7 text-subtle">
-            Pilot a hover craft down a failing network. Ride the relay lanes, jump the jams and keep your ping low for 50 levels.
+            Race down a failing network in hover craft and a car that flies. Ride the relay lanes, jump the jams and keep your ping low for 50 levels.
           </p>
           <div className="mt-8 flex items-center gap-3">
             <button onClick={() => navigate("/play")} className="btn-primary">
@@ -53,7 +51,7 @@ const Index = () => {
           </div>
           {best && (
             <p className="mt-6 font-mono text-xs text-muted-foreground">
-              Best run {best.score.toLocaleString()} · level {progress.highestLevel || best.level}
+              Best run {best.score.toLocaleString()} · level {best.level}
             </p>
           )}
         </div>

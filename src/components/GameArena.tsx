@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback, useState } from "react";
 import { createInitialState, updateGame, switchLane, jump, activateAbility } from "@/game/engine";
 import { GameRenderer } from "@/game/three/GameRenderer";
 import { GameState, WORLDS } from "@/game/types";
-import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, playAchievement, startBGM, stopBGM, resumeAudio } from "@/game/audio";
+import { playLaneSwitch, playJump, playPickup, playHit, playAbility, playLevelUp, playGameOver, playAchievement, startBGM, stopBGM, resumeAudio, suspendAudio } from "@/game/audio";
 import { updateAfterRun, loadProgress, retryLevel, TRIAL_SECONDS, markTrialConditionUsed, countEligibleTrials, updateResumeNode, calculateResumeNode, completeGame } from "@/game/playerProgress";
 import { updateDailyMissionsAfterRun, RunMissionStats } from "@/game/dailyMissions";
 import { findNewAchievements } from "@/game/achievements";
@@ -223,8 +223,21 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
     touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
   }, []);
 
+  // Controls only act on a run in progress, not on the how-to-play screen, while paused or after the end
+  const canControl = () => {
+    const s = stateRef.current;
+    return s.running && !s.paused && !s.gameOver;
+  };
+
+  const triggerAbility = () => {
+    const before = stateRef.current;
+    stateRef.current = activateAbility(before);
+    if (stateRef.current.abilityActive && !before.abilityActive) playAbility();
+  };
+
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (!touchStartRef.current) return;
+    if (!canControl()) { touchStartRef.current = null; return; }
     const touch = e.changedTouches[0];
     const dx = touch.clientX - touchStartRef.current.x;
     const dy = touch.clientY - touchStartRef.current.y;
@@ -249,18 +262,22 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
   // Keyboard controls
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft" || e.key === "a") {
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      const gameKey = ["ArrowLeft", "ArrowRight", "ArrowUp", " ", "a", "d", "w", "e", "Shift"].includes(key);
+      if (!gameKey || !canControl()) return;
+      // Stop Space from also pressing whichever HUD button last had focus
+      e.preventDefault();
+      if (key === "ArrowLeft" || key === "a") {
         stateRef.current = switchLane(stateRef.current, -1);
         playLaneSwitch();
-      } else if (e.key === "ArrowRight" || e.key === "d") {
+      } else if (key === "ArrowRight" || key === "d") {
         stateRef.current = switchLane(stateRef.current, 1);
         playLaneSwitch();
-      } else if (e.key === " " || e.key === "ArrowUp" || e.key === "w") {
+      } else if (key === " " || key === "ArrowUp" || key === "w") {
         stateRef.current = jump(stateRef.current);
         playJump();
-      } else if (e.key === "e" || e.key === "Shift") {
-        stateRef.current = activateAbility(stateRef.current);
-        playAbility();
+      } else if (key === "e" || key === "Shift") {
+        triggerAbility();
       }
     };
     window.addEventListener("keydown", handleKey);
@@ -268,8 +285,24 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
   }, []);
 
   const handleAbility = useCallback(() => {
-    stateRef.current = activateAbility(stateRef.current);
-    playAbility();
+    if (canControl()) triggerAbility();
+  }, []);
+
+  // Leaving the app or tab mid-run pauses it and silences the music, so nothing is lost while away
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        suspendAudio();
+        if (canControl()) {
+          stateRef.current = { ...stateRef.current, paused: true };
+          setHudState({ ...stateRef.current });
+        }
+      } else {
+        resumeAudio();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
   const handlePause = useCallback(() => {

@@ -76,5 +76,7 @@ export class CraftStage {
   dispose() {
     disposeObject(this.scene);
     this.renderer.dispose();
+    // Browsers cap live WebGL contexts (often 8 to 16); release ours instead of waiting for GC
+    this.renderer.forceContextLoss();
   }
 }

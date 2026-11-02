@@ -539,7 +539,10 @@ export class GameRenderer {
     this.placeObstacles([]);
     this.placePickups([], false);
     const x = laneX(1) + Math.sin(this.time * 0.35) * 0.6;
-    this.placeCraft(x, 0, dt, false, false, this.attractScroll);
+    // The flying car drives for a few seconds, then lifts off and lands again, on a loop
+    const cycle = this.craft?.car ? (this.time % 7) / 7 : 0;
+    const flight = cycle > 0.55 ? Math.sin(((cycle - 0.55) / 0.45) * Math.PI) * 1.8 : 0;
+    this.placeCraft(x, flight, dt, false, false, this.attractScroll);
     this.effects.update({ world, scroll: this.attractScroll, speed: 4, time: this.time, dt, craftX: x, ability: null, abilityActive: false });
     // Craft sits right of centre so the headline has calm space on the left
     const portrait = this.camera.aspect < 0.8;
@@ -551,5 +554,7 @@ export class GameRenderer {
   dispose() {
     disposeObject(this.scene);
     this.renderer.dispose();
+    // Browsers cap live WebGL contexts (often 8 to 16); release ours instead of waiting for GC
+    this.renderer.forceContextLoss();
   }
 }
