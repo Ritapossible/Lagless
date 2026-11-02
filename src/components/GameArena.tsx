@@ -408,8 +408,8 @@ const HowToPlay = ({ onStart, onBack }: { onStart: () => void; onBack: () => voi
           ))}
         </ul>
       </section>
-      <div className="md:col-span-2">
-        <button onClick={onStart} className="btn-primary w-full sm:w-auto sm:px-10">Start run</button>
+      <div className="sticky bottom-0 z-10 -mx-6 border-t border-border bg-background/95 px-6 pb-[max(16px,env(safe-area-inset-bottom))] pt-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none md:col-span-2">
+        <button onClick={onStart} className="btn-primary w-full md:w-auto md:px-10">Start run</button>
       </div>
     </div>
   </div>

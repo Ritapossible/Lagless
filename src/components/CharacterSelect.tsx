@@ -20,7 +20,7 @@ const CharacterSelect = ({ onSelect, onBack }: Props) => {
     <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-background px-6 sm:px-8">
       <ScreenHeader title="Choose a runner" onBack={onBack} />
 
-      <div className="mx-auto grid w-full max-w-5xl flex-1 items-center gap-8 py-4 md:grid-cols-[1.2fr_1fr]">
+      <div className="mx-auto grid w-full max-w-5xl flex-1 items-center gap-6 py-2 md:grid-cols-[1.2fr_1fr] md:gap-8 md:py-4">
         {/* The craft on its stand is the one rich thing on this screen */}
         <ThreeCanvas
           key={runner.ability}
@@ -30,7 +30,7 @@ const CharacterSelect = ({ onSelect, onBack }: Props) => {
             return stage;
           }}
           frame={(stage, dt) => stage.render(dt)}
-          className="aspect-[4/3] w-full"
+          className="aspect-[16/10] w-full md:aspect-[4/3]"
         />
 
         <div className="animate-enter">
@@ -71,9 +71,12 @@ const CharacterSelect = ({ onSelect, onBack }: Props) => {
             ))}
           </div>
 
-          <button onClick={() => onSelect(runner)} className="btn-primary mt-6 w-full">
-            Fly {runner.name}
-          </button>
+          {/* On phones the button rides along the bottom edge so it's always reachable */}
+          <div className="sticky bottom-0 z-10 -mx-6 border-t border-border bg-background/95 px-6 pb-[max(16px,env(safe-area-inset-bottom))] pt-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none mt-6">
+            <button onClick={() => onSelect(runner)} className="btn-primary w-full">
+              Fly {runner.name}
+            </button>
+          </div>
         </div>
       </div>
       <BuiltByFooter />

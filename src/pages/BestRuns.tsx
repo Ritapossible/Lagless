@@ -23,19 +23,19 @@ const BestRuns = () => {
         ) : (
           <ol className="mt-6 divide-y divide-border rounded-2xl border border-border bg-card">
             {runs.map((run, i) => (
-              <li key={`${run.date}-${i}`} className="flex h-16 items-center gap-4 px-5">
-                <span className={`w-6 font-mono text-sm tabular-nums ${i === 0 ? "text-primary" : "text-muted-foreground"}`}>
+              <li key={`${run.date}-${i}`} className="flex h-16 items-center gap-3 px-4 sm:gap-4 sm:px-5">
+                <span className={`w-5 shrink-0 font-mono text-sm tabular-nums ${i === 0 ? "text-primary" : "text-muted-foreground"}`}>
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px]">
+                  <p className="truncate text-sm sm:text-[15px]">
                     {run.victory ? "Network clear" : `Lv ${run.level} · ${run.world}`}
                   </p>
                   <p className="truncate text-sm text-muted-foreground">
-                    {run.character} · x{run.bestCombo.toFixed(1)} combo · {formatDate(run.date)}
+                    {run.character} · x{run.bestCombo.toFixed(1)}<span className="hidden sm:inline"> combo</span> · {formatDate(run.date)}
                   </p>
                 </div>
-                <span className="font-mono text-lg tabular-nums">{run.score.toLocaleString()}</span>
+                <span className="shrink-0 font-mono text-base tabular-nums sm:text-lg">{run.score.toLocaleString()}</span>
               </li>
             ))}
           </ol>
