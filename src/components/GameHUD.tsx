@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pause, Volume2, VolumeX, Zap, FastForward, Layers, Diamond, PlaneTakeoff } from "lucide-react";
+import { Pause, Volume2, VolumeX, Zap, FastForward, Layers, Plus, PlaneTakeoff } from "lucide-react";
 import { AbilityType, GameState } from "@/game/types";
 import { toggleMute, isMuted } from "@/game/audio";
 
@@ -71,6 +71,9 @@ const GameHUD = ({ state, onAbility, onPause, trialTimer, relayHint }: GameHUDPr
         </div>
 
         <div className="flex items-center gap-1 rounded-xl border border-border bg-background/75 p-2 pl-4 backdrop-blur">
+          {state.scoreBoostTimer > 0 && (
+            <span className="rounded-md bg-relay/20 px-1.5 py-0.5 font-mono text-xs tabular-nums text-relay">x2 {Math.ceil(state.scoreBoostTimer)}s</span>
+          )}
           <span className="font-mono text-lg tabular-nums">{Math.floor(state.score).toLocaleString()}</span>
           <button
             onClick={() => setMuted(toggleMute())}
@@ -99,9 +102,9 @@ const GameHUD = ({ state, onAbility, onPause, trialTimer, relayHint }: GameHUDPr
       {/* First-run coaching: blinks until the player has the idea, then goes away */}
       {relayHint && (
         <div className="mt-3 flex justify-center px-4" role="status">
-          <p className="flex items-center gap-2 rounded-xl border border-relay/60 bg-background/80 px-4 py-2 text-sm backdrop-blur animate-blink">
-            <Diamond className="h-4 w-4 shrink-0 fill-relay text-relay" strokeWidth={1.5} />
-            Teal diamonds and lanes refill your ms
+          <p className="flex items-center gap-2 rounded-xl border border-positive/60 bg-background/80 px-4 py-2 text-sm backdrop-blur animate-blink">
+            <Plus className="h-4 w-4 shrink-0 text-positive" strokeWidth={2} />
+            Green crosses and teal lanes refill your ms
           </p>
         </div>
       )}

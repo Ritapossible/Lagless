@@ -34,7 +34,7 @@ const GameArena = ({ onExit, onBack, character, startLevel = 1, startAsTrial = f
   // Relay coaching for new players: seconds flown this run, and whether this player still needs it
   const runTimeRef = useRef(0);
   const coachRef = useRef(!startAsTrial && isNewPlayer(loadProgress().totalRuns));
-  const showRelayHint = () => relayHintActive(coachRef.current, runTimeRef.current, stateRef.current.relaysUsed);
+  const showRelayHint = () => relayHintActive(coachRef.current, runTimeRef.current, stateRef.current.refillsCollected);
 
   // Start game + BGM after instructions dismissed
   useEffect(() => {
@@ -409,8 +409,8 @@ const CONTROLS = [
 
 const RULES = [
   { title: "Keep your latency budget", text: "It drains every second and fast on red lanes. At 0 ms the run times out." },
-  { title: "Ride the teal lanes", text: "Relay lanes refill the budget and build your combo. Teal diamonds refill it too." },
-  { title: "Jump the hazards", text: "Crates, storm pylons and broken gates cost hull. White repair cells fix it, green crosses refill 15 ms and amber coins add score." },
+  { title: "Ride the teal lanes", text: "Relay lanes refill the budget and build your combo. Rare green crosses refill 30 ms." },
+  { title: "Jump the hazards", text: "Crates, storm pylons and broken gates cost hull. White repair cells fix it. Teal diamonds double your score for 8 s, amber coins add score." },
   { title: "Five worlds, 50 levels", text: "Boss waves at 25 and 39. Checkpoints save from level 10, so a long run is never lost." },
 ];
 

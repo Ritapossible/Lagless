@@ -19,7 +19,7 @@ export interface Obstacle {
 export interface Pickup {
   lane: number;
   z: number;
-  /** relay: teal diamond, refills time and combo; time: green cross, refills time; repair: white cell, repairs hull; score: amber coin */
+  /** relay: teal diamond, doubles score for a while; time: green cross, refills time; repair: white cell, repairs hull; score: amber coin */
   type: 'relay' | 'time' | 'repair' | 'score';
   collected: boolean;
 }
@@ -51,7 +51,9 @@ export const DEFAULT_GRAVITY = 25;
 export const LEVEL_DISTANCE = 300;
 /** Latency budget refilled by Overdrive and by green crosses */
 export const OVERDRIVE_REFILL = 25;
-export const TIME_PICKUP_REFILL = 15;
+export const TIME_PICKUP_REFILL = 30;
+/** Seconds of double score from a teal diamond */
+export const SCORE_BOOST_SECONDS = 8;
 /** Hull repaired by a white repair cell (hull is 50) */
 export const REPAIR_PICKUP_HULL = 15;
 /** Height Volt holds during Lift-off; anything over 2 clears obstacles */
@@ -117,6 +119,10 @@ export interface GameState {
   failureCause: string;
   floatingTexts: FloatingText[];
   pickupsCollected: number;
+  /** Seconds of double score left from a teal diamond */
+  scoreBoostTimer: number;
+  /** Green crosses picked up this run (drives first-run coaching) */
+  refillsCollected: number;
   latencyAbove60Time: number;
   audioEvents: {
     hit: boolean;
@@ -129,10 +135,10 @@ export interface GameState {
 export const WORLDS: WorldConfig[] = [
   // Stage 1: Congestion Zone (L1-12) — slow, dense, congested, narrow
   {
-    name: 'Congestion Zone', baseSpeed: 3.5, obstacleDensity: 0.03, laneDisableChance: 0,
+    name: 'Congestion Zone', baseSpeed: 3.5, obstacleDensity: 0.026, laneDisableChance: 0,
     relayFrequency: 0.014, stabilityZones: false, bgHue: 0,
-    latencyDrainRate: 0.8, latencyDrainCongested: 6, congestedLaneChance: 0.006,
-    relayRefillRate: 10, comboMultiplierCap: 2, visualChaosLevel: 0.7,
+    latencyDrainRate: 0.6, latencyDrainCongested: 5, congestedLaneChance: 0.006,
+    relayRefillRate: 16, comboMultiplierCap: 2, visualChaosLevel: 0.7,
     mistakePenalty: 1, laneSpacing: 0.82,
   },
   // Stage 2: Fragmented Grid (L13-25) — glitchy, unpredictable, lanes disable
@@ -140,7 +146,7 @@ export const WORLDS: WorldConfig[] = [
     name: 'Fragmented Grid', baseSpeed: 5, obstacleDensity: 0.035, laneDisableChance: 0.008,
     relayFrequency: 0.018, stabilityZones: false, bgHue: 280,
     latencyDrainRate: 0.8, latencyDrainCongested: 6, congestedLaneChance: 0.004,
-    relayRefillRate: 13, comboMultiplierCap: 2.5, visualChaosLevel: 0.85,
+    relayRefillRate: 15, comboMultiplierCap: 2.5, visualChaosLevel: 0.85,
     mistakePenalty: 1.2, laneSpacing: 0.95,
   },
   // Stage 3: Mesh Awakening (L26-32) — relay-heavy, combo-friendly

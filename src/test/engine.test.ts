@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createInitialState, updateGame, jump, activateAbility } from "@/game/engine";
-import { CHARACTERS, LIFT_OFF_HEIGHT, GameState, LEVEL_DISTANCE, OVERDRIVE_REFILL, TIME_PICKUP_REFILL, REPAIR_PICKUP_HULL } from "@/game/types";
+import { CHARACTERS, LIFT_OFF_HEIGHT, GameState, LEVEL_DISTANCE, OVERDRIVE_REFILL, TIME_PICKUP_REFILL, REPAIR_PICKUP_HULL, SCORE_BOOST_SECONDS } from "@/game/types";
 
 const byName = (name: string) => CHARACTERS.find(c => c.name === name)!;
 
@@ -110,7 +110,7 @@ describe("balance", () => {
     return updateGame({ ...s, pickups: [{ lane: s.currentLane, z: 52, type, collected: false }] }, 1 / 60);
   };
 
-  it("a green cross refills 15 ms of time and leaves the hull alone", () => {
+  it("a green cross refills 30 ms of time and leaves the hull alone", () => {
     const s = collect("time");
     expect(s.latencyBudget).toBeGreaterThan(40 + TIME_PICKUP_REFILL - 1);
     expect(s.health).toBe(30);
@@ -120,6 +120,18 @@ describe("balance", () => {
     const s = collect("repair");
     expect(s.health).toBe(30 + REPAIR_PICKUP_HULL);
     expect(s.latencyBudget).toBeLessThan(40);
+  });
+
+  it("a teal diamond doubles score for 8 s and refills nothing", () => {
+    const base: GameState = { ...running("Dart"), latencyBudget: 40, health: 30 };
+    const s = updateGame({ ...base, pickups: [{ lane: base.currentLane, z: 52, type: "relay", collected: false }] }, 1 / 60);
+    expect(s.scoreBoostTimer).toBeCloseTo(SCORE_BOOST_SECONDS, 1);
+    expect(s.latencyBudget).toBeLessThan(40);
+    expect(s.health).toBe(30);
+    // Survival score accrues twice as fast while boosted
+    const plain = updateGame({ ...base }, 0.5).score - base.score;
+    const boosted = updateGame({ ...base, scoreBoostTimer: 5 }, 0.5).score - base.score;
+    expect(boosted / plain).toBeCloseTo(2, 1);
   });
 
   it("never repairs the hull past full", () => {

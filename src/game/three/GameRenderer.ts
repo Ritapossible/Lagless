@@ -251,8 +251,12 @@ export class GameRenderer {
     if (type === 'relay') {
       const m = new THREE.MeshLambertMaterial({ color: 0x0b2b28, emissive: 0x2fd1bf, emissiveIntensity: 1.3, flatShading: true });
       g.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.42, 0), m));
-      // New-player beacon: a ring on the lane and a beam up through the diamond, blinking
-      const beaconMat = new THREE.MeshBasicMaterial({ color: 0x5ff2df, transparent: true, opacity: 0.8, depthWrite: false });
+    } else if (type === 'time') {
+      const m = new THREE.MeshLambertMaterial({ color: 0x0f2a1a, emissive: 0x4cc38a, emissiveIntensity: 1.2, flatShading: true });
+      g.add(new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.22), m));
+      g.add(new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.7, 0.22), m));
+      // New-player beacon: a ring on the lane and a beam up through the cross, blinking
+      const beaconMat = new THREE.MeshBasicMaterial({ color: 0x7ee0a8, transparent: true, opacity: 0.8, depthWrite: false });
       const beacon = new THREE.Group();
       beacon.name = 'beacon';
       const ring = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.06, 4, 24), beaconMat);
@@ -263,10 +267,6 @@ export class GameRenderer {
       beacon.add(ring, beam);
       beacon.visible = false;
       g.add(beacon);
-    } else if (type === 'time') {
-      const m = new THREE.MeshLambertMaterial({ color: 0x0f2a1a, emissive: 0x4cc38a, emissiveIntensity: 1.2, flatShading: true });
-      g.add(new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.22), m));
-      g.add(new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.7, 0.22), m));
     } else if (type === 'repair') {
       // White repair cell: a hexagonal capsule with a dark band, glowing softly
       const shell = new THREE.MeshLambertMaterial({ color: 0x3a3d44, emissive: 0xf4f6fa, emissiveIntensity: 1.0, flatShading: true });

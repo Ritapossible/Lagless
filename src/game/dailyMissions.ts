@@ -36,7 +36,7 @@ export const DAILY_MISSIONS: MissionDef[] = [
   {
     id: 'use_relays',
     title: 'Relay Operator',
-    description: 'Collect 5 relays in one run',
+    description: 'Collect 5 teal diamonds in one run',
     target: 5,
   },
   {

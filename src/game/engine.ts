@@ -1,12 +1,13 @@
-import { GameState, Obstacle, Pickup, WORLDS, CHARACTERS, LaneState, DEFAULT_JUMP_VELOCITY, DEFAULT_GRAVITY, LIFT_OFF_HEIGHT, LEVEL_DISTANCE, OVERDRIVE_REFILL, TIME_PICKUP_REFILL, REPAIR_PICKUP_HULL } from './types';
+import { GameState, Obstacle, Pickup, WORLDS, CHARACTERS, LaneState, DEFAULT_JUMP_VELOCITY, DEFAULT_GRAVITY, LIFT_OFF_HEIGHT, LEVEL_DISTANCE, OVERDRIVE_REFILL, TIME_PICKUP_REFILL, REPAIR_PICKUP_HULL, SCORE_BOOST_SECONDS } from './types';
 
 // Spawn and lane-change odds are tuned per frame at 60 fps. Scaling them by frame time keeps
 // the same rate per second on any device; a phone at 30 fps used to get half the pickups.
-// Pickup mix: relay 30%, time 25%, repair 20%, score 25%
+// Pickup mix: relay (score x2) 25%, time 12%, repair 23%, score 40%. Time refills are kept rare on purpose;
+// most of the budget comes back from riding relay lanes
 function pickPickupType(roll: number): Pickup['type'] {
-  if (roll < 0.3) return 'relay';
-  if (roll < 0.55) return 'time';
-  if (roll < 0.75) return 'repair';
+  if (roll < 0.25) return 'relay';
+  if (roll < 0.37) return 'time';
+  if (roll < 0.6) return 'repair';
   return 'score';
 }
 
@@ -74,6 +75,8 @@ export function createInitialState(character?: import('./types').Character, star
     failureCause: '',
     floatingTexts: [],
     pickupsCollected: 0,
+    scoreBoostTimer: 0,
+    refillsCollected: 0,
     latencyAbove60Time: 0,
     audioEvents: { hit: false, pickup: false, levelUp: false, gameOver: false },
   };
@@ -96,7 +99,10 @@ export function updateGame(state: GameState, dt: number): GameState {
     .filter(ft => ft.life > 0);
   
   // Score from survival
-  s.score += pace * dt * s.comboMultiplier * 0.5;
+  // A teal diamond doubles every point scored while its timer runs
+  s.scoreBoostTimer = Math.max(0, s.scoreBoostTimer - dt);
+  const boost = s.scoreBoostTimer > 0 ? 2 : 1;
+  s.score += pace * dt * s.comboMultiplier * 0.5 * boost;
 
   // Lane interpolation
   if (s.currentLane !== s.targetLane) {
@@ -203,7 +209,7 @@ export function updateGame(state: GameState, dt: number): GameState {
         l.timer = 3;
       } else if (roll < 0.4) {
         l.state = 'congested';
-      } else if (roll < 0.4 + Math.min(0.3, wc.relayFrequency * 12)) {
+      } else if (roll < 0.4 + Math.min(0.35, wc.relayFrequency * 18)) {
         l.state = 'relay';
       } else {
         l.state = 'fast';
@@ -265,16 +271,17 @@ export function updateGame(state: GameState, dt: number): GameState {
       s.audioEvents.pickup = true;
       s.pickupsCollected++;
       if (p.type === 'relay') {
-        s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + 20);
-        s.comboCount++;
+        // Teal diamond: score x2 for a while (picking up another restarts the timer)
+        s.scoreBoostTimer = SCORE_BOOST_SECONDS;
         s.relaysUsed++;
-        s.score += 50 * s.comboMultiplier;
+        s.floatingTexts = [...s.floatingTexts, { text: `Score x2 · ${SCORE_BOOST_SECONDS} s`, x: 0.5, y: 0.45, life: 1.2, color: '#5ff2df' }];
       } else if (p.type === 'time') {
         s.latencyBudget = Math.min(s.maxLatency, s.latencyBudget + TIME_PICKUP_REFILL);
+        s.refillsCollected++;
       } else if (p.type === 'repair') {
         s.health = Math.min(s.maxHealth, s.health + REPAIR_PICKUP_HULL);
       } else {
-        s.score += 100 * s.comboMultiplier;
+        s.score += 100 * s.comboMultiplier * boost;
       }
       return { ...p, collected: true };
     }

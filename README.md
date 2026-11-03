@@ -27,14 +27,14 @@ A 3D three-lane runner you play in the browser. Race a hover craft, or a car tha
 You are a packet crossing a network that is falling apart. Every run is a race against your **latency budget**, shown in milliseconds:
 
 - The budget drains all the time, and fast on **red congested lanes**. At 0 ms the run times out.
-- **Teal relay lanes** and **teal diamonds** refill it and build your combo, which multiplies your score.
+- **Teal relay lanes** refill it and build your combo, which multiplies your score. Rare **green crosses** refill it too.
 - **Hazards** (crates, storm pylons and broken gates) cost hull.
 - **Pickups**, each with one job:
 
   | Pickup | What it does |
   | --- | --- |
-  | Teal diamond | Refills 20 ms and builds your combo |
-  | Green cross | Refills 15 ms |
+  | Teal diamond | Doubles your score for 8 s |
+  | Green cross (rare) | Refills 30 ms |
   | White repair cell | Repairs 30% of your hull |
   | Amber coin | Adds score |
 - There is always a way through: hazards never close all three lanes at once.
@@ -83,7 +83,7 @@ Levels 25 and 39 are boss waves, with denser hazards and a red-framed screen. Fi
 - **Checkpoints** from level 10, with Retry from the last one passed
 - **Daily missions**: four goals that reset at 00:00 UTC; finishing them unlocks a one-time 2-minute preview of Clear Channel
 - **Achievements**, a **profile**, and **best runs**, your top 10 scores on this device
-- **First-run coaching**: for a player's first runs, relay diamonds and lanes blink, with a short hint, until they've got the idea
+- **First-run coaching**: for a player's first runs, green crosses and relay lanes blink, with a short hint, until they've got the idea
 - **Procedural audio**: music and effects are synthesised live with the Web Audio API, with no audio files
 - **Guest play** or any username, no account needed
 
